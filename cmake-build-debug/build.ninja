@@ -58,6 +58,12 @@ build CMakeFiles/Appointment_Organizer_Project.dir/G04_APO.c.o: C_COMPILER__Appo
   OBJECT_DIR = CMakeFiles/Appointment_Organizer_Project.dir
   OBJECT_FILE_DIR = CMakeFiles/Appointment_Organizer_Project.dir
 
+build CMakeFiles/Appointment_Organizer_Project.dir/G04_prototype2.c.o: C_COMPILER__Appointment_Organizer_Project_Debug /Users/physics/Desktop/OS/PROJECT/Appointment_Organizer_Project/G04_prototype2.c || cmake_object_order_depends_target_Appointment_Organizer_Project
+  DEP_FILE = CMakeFiles/Appointment_Organizer_Project.dir/G04_prototype2.c.o.d
+  FLAGS = -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk -fcolor-diagnostics -std=gnu11
+  OBJECT_DIR = CMakeFiles/Appointment_Organizer_Project.dir
+  OBJECT_FILE_DIR = CMakeFiles/Appointment_Organizer_Project.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Appointment_Organizer_Project
@@ -66,7 +72,7 @@ build CMakeFiles/Appointment_Organizer_Project.dir/G04_APO.c.o: C_COMPILER__Appo
 #############################################
 # Link the executable Appointment_Organizer_Project
 
-build Appointment_Organizer_Project: C_EXECUTABLE_LINKER__Appointment_Organizer_Project_Debug CMakeFiles/Appointment_Organizer_Project.dir/G04_prototype.c.o CMakeFiles/Appointment_Organizer_Project.dir/G04_APO.c.o
+build Appointment_Organizer_Project: C_EXECUTABLE_LINKER__Appointment_Organizer_Project_Debug CMakeFiles/Appointment_Organizer_Project.dir/G04_prototype.c.o CMakeFiles/Appointment_Organizer_Project.dir/G04_APO.c.o CMakeFiles/Appointment_Organizer_Project.dir/G04_prototype2.c.o
   FLAGS = -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk
   OBJECT_DIR = CMakeFiles/Appointment_Organizer_Project.dir
   POST_BUILD = :
