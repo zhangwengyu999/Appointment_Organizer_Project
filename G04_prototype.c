@@ -15,7 +15,7 @@ char *users[10];
 // child task
 int run(int inCNum) {
     printf("Child %d with pid %d created for user %s \n", inCNum+1, getpid(),users[inCNum]);
-    sleep(7-inCNum);
+    sleep(inCNum+1);
     exit(inCNum+1);
 }
 
