@@ -79,9 +79,6 @@ int isAvailableIn(User* inUser, Appointment* inApp) {
     }
     return 1;
 }
-
-
-
 // --------Appointment Class Methods----------------
 Appointment* newAppointment(char* inAppName, User* inCaller, User** inCallees, int inDate, int inTime, float inDuration) {
     Appointment* self=(Appointment *) malloc(sizeof(Appointment));
@@ -94,7 +91,6 @@ Appointment* newAppointment(char* inAppName, User* inCaller, User** inCallees, i
     self->status=0;
     return self;
 }
-
 
 char* getAppName(Appointment* inAppName){
     return inAppName->appName;
@@ -142,14 +138,28 @@ int getTimeOut(int inDate, int inTime, int endTime){
 }
 
 int judgeCommand(char* command){
+    FILE* fp;
+    char* str;
+    char* strList[1500];
+    int num;
     printf("Input command: ");
     scanf("%s", &command);
     if(strcasecmp(command,"f")){
-        fgets(str,)
+        char* split= strtok(NULL," ");
+        fp = fopen(split,"r");
+        while(!feof(fp)){
+            str=fgets(str,100,fp);
+            strList[num]=str;
+            num++;
+        }
+        fclose(fp);
     }
-    else if (){
+    else{
+        fgets(str,100,stdin);
+        strList[num]=str;
+        num++;
+    }
 
-    }
 
     return 0;
 }
@@ -181,64 +191,64 @@ void standardName(char* inName) {
 
 // main function
 int main(int argc, char *argv[]) {
-//    userSize = argc-3;
-//    startTime = atoi(argv[1]);
-//    endTime = atoi(argv[2]);
-//    int i;
-//    for (i=0;i<userSize;i++) {
-//        users[i]=argv[i+3];
-//    }
-//
-//    int userFlag = 1;
-//    int timeFlag = 1;
-//    if (userSize > 10 || userSize < 3) {
-//        printf("User Size out of Range [3,10], try again!\n");
-//        userFlag = 0;
-//    }
-//    if (startTime >= endTime || startTime < 20230501 || endTime > 20230531) {
-//        printf("Time out of Range [20230501, 20230531], try again!\n");
-//        timeFlag = 0;
-//    }
-//
-//    // Wrong input
-//    if (userFlag == 0 || timeFlag==0) {
-//        exit(0);
-//    }
-//
-//    printf("Time: [%d, %d]\n",startTime, endTime);
-//    printf("Users: [");
-//    int k;
-//    for (k=0;k<userSize-1;k++) {
-//        standardName(users[k]);
-//        printf("%s, ",users[k]);
-//    }
-//
-//    // Convert username into standard format
-//    standardName(users[userSize-1]);
-//    printf("%s]\n",users[userSize-1]);
-//
-//    printf("Parent, pid %d: \n", getpid());
-//    int j;
-//    for (j=0;j<userSize;j++) {
-//        int cid = fork(); // creat child process
-//        if (cid < 0) { // error occurred
-//            printf("Fork Failed\n");
-//            exit(1);
-//        } else if (cid == 0) { // child process created
-//            run(j); // do child task
-//        }
-//    }
-//
-//    // wait for all child processes to complete repeatedly
-//    int cret;
-//    int w;
-//    for(w=0;w<userSize;w++) {
-//        int cid = wait(&cret); // wait for child to complete, get child process number from return value
-//        printf("Parent, pid %d: ", getpid());
-//        printf("child %d with id %d for user %s completed execution\n", cret/256,cid,users[cret/256-1]);
-//    }
-//    printf("Parent, pid %d completed execution\n", getpid());
-    printf("%d",getEndTime(1800,2.3));
+    userSize = argc-3;
+    startTime = atoi(argv[1]);
+    endTime = atoi(argv[2]);
+    int i;
+    for (i=0;i<userSize;i++) {
+        users[i]=argv[i+3];
+    }
+
+    int userFlag = 1;
+    int timeFlag = 1;
+    if (userSize > 10 || userSize < 3) {
+        printf("User Size out of Range [3,10], try again!\n");
+        userFlag = 0;
+    }
+    if (startTime >= endTime || startTime < 20230501 || endTime > 20230531) {
+        printf("Time out of Range [20230501, 20230531], try again!\n");
+        timeFlag = 0;
+    }
+
+    // Wrong input
+    if (userFlag == 0 || timeFlag==0) {
+        exit(0);
+    }
+
+    printf("Time: [%d, %d]\n",startTime, endTime);
+    printf("Users: [");
+    int k;
+    for (k=0;k<userSize-1;k++) {
+        standardName(users[k]);
+        printf("%s, ",users[k]);
+    }
+
+    // Convert username into standard format
+    standardName(users[userSize-1]);
+    printf("%s]\n",users[userSize-1]);
+
+    printf("Welcome to APpointment Organizer (APO)\n");
+    int j;
+    for (j=0;j<userSize;j++) {
+        int cid = fork(); // creat child process
+        if (cid < 0) { // error occurred
+            printf("Fork Failed\n");
+            exit(1);
+        } else if (cid == 0) { // child process created
+            run(j); // do child task
+        }
+    }
+
+    // wait for all child processes to complete repeatedly
+    int cret;
+    int w;
+    for(w=0;w<userSize;w++) {
+        int cid = wait(&cret); // wait for child to complete, get child process number from return value
+        printf("Parent, pid %d: ", getpid());
+        printf("child %d with id %d for user %s completed execution\n", cret/256,cid,users[cret/256-1]);
+    }
+    printf("Parent, pid %d completed execution\n", getpid());
+    // printf("%d",getEndTime(1800,2.3));
     exit(0);
 }
 
