@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "*.tex": "latex",
-        "sstream": "c"
+        "sstream": "c",
+        "__locale": "c",
+        "cstring": "c",
+        "typeinfo": "c"
     }
 }
