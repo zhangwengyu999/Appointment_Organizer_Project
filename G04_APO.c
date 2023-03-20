@@ -34,6 +34,7 @@ typedef struct User {
 // --------Define Appointment Class----------
 typedef struct Appointment {
     int appName;
+    int appID;
     int caller; // 1
     int* callees; // 2,3
     int date;
@@ -91,12 +92,12 @@ int isAvailableIn(User* inUser, Appointment* inApp) {
     return 1;
 }
 // --------Appointment Class Methods----------------
-Appointment* newAppointment(int inAppName, int inCaller, int* inCallees, int inDate, int inTime, float inDuration) {
+Appointment* newAppointment(int inAppName, int inCaller, int* inCallees, int inID, int inDate, int inTime, float inDuration) {
     Appointment* self=(Appointment *) malloc(sizeof(Appointment));
     self->appName=inAppName;
     self->caller=inCaller;
     self->callees=inCallees;
-    
+    self->appID=inID;
     self->date=inDate;
     self->time=inTime;
     self->duration=inDuration;
@@ -281,7 +282,7 @@ void recordApp(char* inApp) {
             }
         }
     }
-    Appointment* outAppointment = newAppointment(appName, caller, callees, date, time, duration);
+    Appointment* outAppointment = newAppointment(appName, caller, callees, appCount, date, time, duration);
     totalAppointmentList[appCount] = outAppointment;
     addAppointment(totalUserList[caller], appCount);
     for (i = 0; i < inAppLength - 5; i++) {
@@ -499,10 +500,10 @@ int main(int argc, char *argv[]) {
 //      else if do NOT appears in any app's user's list (or appears in rejected list): reject
 
 
-// add appID in app Class;
+// [OK] add appID in app Class; 
 // appointment caller and callees all change to user;
 
-// split total list into user lists;
+// [OK] split total list into user lists;
 // order function (in user list); func(int*);
 // check overlap, and reject (FCFS, PR) function (in user list);
 // check totalAppList, to check all accept or reject with user lists, reject list (in total list);
