@@ -91,6 +91,7 @@ int isAvailableIn(User* inUser, Appointment* inApp) {
     }
     return 1;
 }
+
 // --------Appointment Class Methods----------------
 Appointment* newAppointment(int inAppName, int inCaller, int* inCallees, int inID, int inDate, int inTime, float inDuration) {
     Appointment* self=(Appointment *) malloc(sizeof(Appointment));
@@ -169,49 +170,23 @@ int getPriority(char* inAppName){
     } 
 }
 
-
-
-// command judge for both file and keyboard input
-// single cmd: cmd
-// file cmd: f filename
-char** getCommandList(char* command){
-    FILE* fp;
-    char* str = (char*) malloc(sizeof(char)*255);
-    char** strList = (char**) malloc(sizeof(char*)*1500);
-    int num = 0;
-    // printf("%s\n",command);
-
-    char* cmdCopy = (char*) malloc(sizeof(command));
-    strcpy(cmdCopy,command);
-    char* split = strtok(cmdCopy," ");
-    printf("%s\n",command);
-    if(strcasecmp(split,"f") == 0){ // file cmd
-        char* split= strtok(NULL," ");
-        // printf("%s\n",split);
-        fp = fopen(split,"r");
-        while(!feof(fp)){
-            str=fgets(str,255,fp);
-            // printf("%s\n",str);
-            if (str != NULL){
-                strList[num] = (char*) malloc(sizeof(char)*255);
-                str[strlen(str)-1] = 0;
-                strcpy(strList[num],str);
-                // printf("%s\n",strList[num]);
-                num++;
-            } 
-        }
-        fileNum=num;
-        fclose(fp);
+char* itoa(int val, int base){ // convert int to string
+	static char buf[32] = {0};
+	int i = 30;
+	for(; val && i ; --i, val /= base) {
+        buf[i] = "0123456789abcdef"[val % base];
     }
-    else{ // single command
-        // printf("1\n");
-        strList[num] = (char*) malloc(sizeof(char)*255);
-        strcpy(strList[num],command);
-        // printf("%s\n",command);
-    }
-    return strList;
+	return &buf[i+1];
 }
 
+void appToString(Appointment* inApp) {
+    // ID(4)PR(1)Date(2)Start(3)Duration(3) = 13
+    char* str = (char*) malloc(sizeof(char)*13);
+    strcat(str,itoa(inApp->appID,10));
+    // ...
+}
+
+// get Data and Time transfer
 int* getTimeTransfer(int inTime,float inDuration){
     int startTime = (inTime/100)*60 + inTime%100-1080;
     // int endTime = (inTime+ inDuration*60)-1080;
@@ -222,6 +197,23 @@ int* getTimeTransfer(int inTime,float inDuration){
     return timeList;
 }
 
+// Convert names to the standard format
+// first letter capitalized regardless of the input string
+void standardName(char* inName) {
+    int j=0;
+    while (inName[j]) {
+        char ch = inName[j];
+        inName[j]=tolower(ch);
+        j++;
+    }
+    inName[0]=toupper(inName[0]);
+}
+// ---------- End of Appointment Class Methods ---------
+
+
+
+
+// ---------- Input Module Functions ---------
 // record appointment
 void recordApp(char* inApp) {
     // 1. store input Appointment log file
@@ -291,51 +283,75 @@ void recordApp(char* inApp) {
     appCount++;
 }
 
+// command judge for both file and keyboard input
+// single cmd: cmd
+// file cmd: f filename
+char** getCommandList(char* command){
+    FILE* fp;
+    char* str = (char*) malloc(sizeof(char)*255);
+    char** strList = (char**) malloc(sizeof(char*)*1500);
+    int num = 0;
+    // printf("%s\n",command);
 
-// void inputModule() {
-//     printf("~~WELCOME TO APO~~\n"); 
-//     while (1) {
-//         printf("Please enter appointment:\n");
-//     }
-    
-// }
-
-void outputModule() {
-    
-}
-
-void scheduleModule() {
-    
-}
-
-
-
-
-// // child task
-// int run(int inCNum) {
-//     printf("Child %d with pid %d created for user %s \n", inCNum+1, getpid(),users[inCNum]);
-//     sleep(inCNum+1);
-//     exit(inCNum+1);
-// }
-
-// Convert names to the standard format
-// first letter capitalized regardless of the input string
-void standardName(char* inName) {
-    int j=0;
-    while (inName[j]) {
-        char ch = inName[j];
-        inName[j]=tolower(ch);
-        j++;
+    char* cmdCopy = (char*) malloc(sizeof(command));
+    strcpy(cmdCopy,command);
+    char* split = strtok(cmdCopy," ");
+    // printf("%s\n",command);
+    if(strcasecmp(split,"f") == 0){ // file cmd
+        char* split= strtok(NULL," ");
+        // printf("%s\n",split);
+        fp = fopen(split,"r");
+        while(!feof(fp)){
+            str=fgets(str,255,fp);
+            // printf("%s\n",str);
+            if (str != NULL){
+                strList[num] = (char*) malloc(sizeof(char)*255);
+                str[strlen(str)-1] = 0;
+                strcpy(strList[num],str);
+                // printf("%s\n",strList[num]);
+                // printf("%lu\n",strlen(strList[num]));
+                num++;
+            } 
+        }
+        fileNum=num;
+        fclose(fp);
     }
-    inName[0]=toupper(inName[0]);
+    else { // single command
+        // printf("1\n");
+        strList[num] = (char*) malloc(sizeof(char)*255);
+        strcpy(strList[num],command);
+        fileNum=1;
+        // printf("%lu\n",strlen(command));
+    }
+    return strList;
 }
+// ---------- End of Input Module Functions ---------
 
+
+
+
+// ---------- Scheduling Module Function----------
+void scheduleModule() {}
+
+void FCFS(char** inAppStrList) {}
+
+void PR(char** inAppStrList) {}
+
+void crossCheck(int* rejectedList, int* inAppList) {}
+// ---------- End of Scheduling Module ----------
+
+
+
+
+// ---------- Output Module Function ----------
+void outputModule() {}
+// ---------- End of Output Module ----------
 
 
 // main function
 int main(int argc, char *argv[]) {
     
-    // Initialization
+    // ---------- Initialization ----------
     userSize = argc-3;
     startTime = atoi(argv[1]);
     endTime = atoi(argv[2]);
@@ -360,18 +376,6 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    // printf("Time: [%d, %d]\n",startTime, endTime);
-    // printf("Users: [");
-    // int k;
-    // for (k=0;k<userSize-1;k++) {
-    //     standardName(users[k]);
-    //     printf("%s, ",users[k]);
-    // }
-
-    // Convert username into standard format
-    // standardName(users[userSize-1]);
-    // printf("%s]\n",users[userSize-1]);
-
     // initialize appointment list
     totalAppointmentList=(Appointment**) malloc(sizeof(Appointment*)*1500);
     // initialize user list
@@ -383,12 +387,88 @@ int main(int argc, char *argv[]) {
         User* user = newUser(users[k]);
         totalUserList[k]=user;
     }
-    
     printf("Welcome to APpointment Organizer (APO)\n");
-    // ----------------------------------
+    // ---------- End of Initialization ----------
 
-    // Input Module
-    // while (1)
+    // fork and pipe
+    int	fd[4][2]; // 4 pipe, a pair for each 2 child process
+    for (i=1;i<=2;i++) { // loop for 4 process
+        // parent -> child pipe 0,2,4,6
+        if (pipe(&fd[2*(i-1)][0]) < 0) {
+            printf("Pipe creation error\n");
+            exit(1);
+        }
+        // child -> parent pipe 1,3,5,7
+        if (pipe(&fd[2*(i-1)+1][0]) < 0) {
+            printf("Pipe creation error\n");
+            exit(1);
+        }
+        int pid = fork();
+        if (pid < 0) { // error occurred
+            printf("Fork Failed\n");
+            exit(1);
+        } 
+        // -----------------Child 1-2 -----------------
+        else if (pid == 0) { // child process 
+            if (i == 1) { // Scheduling Module
+                // close unused ends
+                close(fd[2*(i-1)+1][0]); // close child in for child -> parent pipe
+                close(fd[2*(i-1)][1]); // close child out for parent -> child pipe
+                char buf1[10];
+                char buf2[10];
+                while(1) {
+                    // 1. Waiting for cmd "H" to receive hello from parent
+                    int m = read(fd[2*(i-1)][0],buf1,10);
+                    if (m>0 && buf1[0]=='H') {
+                        printf("Scheduling Module %d <- Parent: %c\n", i, buf1[0]);
+                        write(fd[2*(i-1)+1][1], "A", strlen("A")); // write "A" back to ACK parent
+                        printf("Scheduling Module %d -> Parent: 'A'\n", i);
+                    }
+                    // 2. Waiting for cmd "E" from parent to exit
+                    int n = read(fd[2*(i-1)][0],buf2,10);
+                    if (n>0 && buf2[0]=='E') {
+                        printf("Scheduling Module %d <- Parent: %c\n", i, buf2[0]);
+                        break;
+                    }
+                }
+                // close used ends
+                close(fd[2*(i-1)+1][1]); // close child out for child -> parent
+                close(fd[2*(i-1)][0]); // close child in for parent -> child
+                printf("Scheduling Module %d exit\n", i);
+                exit(0); 
+            }
+            else if (i == 2) { // Output Module
+                // close unused ends
+                close(fd[2*(i-1)+1][0]); // close child in for child -> parent pipe
+                close(fd[2*(i-1)][1]); // close child out for parent -> child pipe
+                char buf1[10];
+                char buf2[10];
+                while(1) {
+                    // 1. Waiting for cmd "H" to receive hello from parent
+                    int m = read(fd[2*(i-1)][0],buf1,10);
+                    if (m>0 && buf1[0]=='H') {
+                        printf("Output Module %d <- Parent: %c\n", i, buf1[0]);
+                        write(fd[2*(i-1)+1][1], "A", strlen("A")); // write "A" back to ACK parent
+                        printf("Output Module %d -> Parent: 'A'\n", i);
+                    }
+                    // 2. Waiting for cmd "E" from parent to exit
+                    int n = read(fd[2*(i-1)][0],buf2,10);
+                    if (n>0 && buf2[0]=='E') {
+                        printf("Output Module %d <- Parent: %c\n", i, buf2[0]);
+                        break;
+                    }
+                }
+                // close used ends
+                close(fd[2*(i-1)+1][1]); // close child out for child -> parent
+                close(fd[2*(i-1)][0]); // close child in for parent -> child
+                printf("Output Module %d exit\n", i);
+                exit(0); 
+            }
+
+        }
+    }
+
+    // ---------- Enter Input Module (Parent Process) ----------
     // 1. handle input from keyboard or files
     // 2. check cmd format > log file
     // 3. check cmd type
@@ -396,6 +476,35 @@ int main(int argc, char *argv[]) {
     // > appointment types: recordApp()
     // > print schedule: func()
     // > exit program: break
+    
+    // close unused pipe ends
+    int j;
+    for (j=0;j<2;j++) {
+        close(fd[2*(j)+1][1]); // close parent out for child -> parent
+        close(fd[2*(j)][0]); // close parent in for parent -> child
+    }
+    // 1. say hello to all children
+    for (j=1;j<=2;j++) { 
+        printf("Parent -> CP %d: 'H'\n", j);
+        write(fd[2*(j-1)][1], "H", strlen("H")); // write child -> parent
+    }
+    // 2. wait all child to send back ACK
+    int idCount=0;
+    while(1) {
+        for (j=1;j<=2;j++) {
+            char buf3[10]={0};
+            int n;
+            n = read(fd[2*(j-1)+1][0],buf3,1); // read from child
+            if (n>0 && buf3[0]=='A') {
+                printf("Parent <- CP %d: %s\n",j,buf3);
+                idCount++;
+            }
+        }
+        if (idCount==2) {
+            printf("Parent: All children ACKed\n");
+            break;
+        }
+    }
 
     while (1) {
         char cmd[255];
@@ -418,11 +527,10 @@ int main(int argc, char *argv[]) {
                 strcpy(cmdCopy,cmdList[i]);
                 // printf("%s\n",cmdList[i]);
                 char* cmdToken = strtok(cmdCopy, " ");
+
                 if (strcmp(cmdToken, "privateTime") == 0 || strcmp(cmdToken, "projectMeeting") == 0 || 
                     strcmp(cmdToken, "groupStudy") == 0 || strcmp(cmdToken, "gathering") == 0) {
                     recordApp(cmdList[i]);
-                    // printf("%d %d %d %d %d %f\n", recordedApp->appName, recordedApp->caller, recordedApp->callees[0], recordedApp->date, recordedApp->time, recordedApp->duration);
-                    // printf("%s\n",cmdList[i]);
                     printf("-> [Recorded]\n");
                 }
                 else if (strcmp(cmdToken, "printSchd") == 0) {
@@ -430,6 +538,21 @@ int main(int argc, char *argv[]) {
                 }
                 else if (strcmp(cmdList[i], "endProgram") == 0) {
                     printf("-> Bye!\n");
+                    // 3. send cmd "E" to child for exit
+                    for (j=1;j<=2;j++) {
+                        printf("Parent -> CP %d: 'E'\n", j);
+                        write(fd[2*(j-1)][1], "E", strlen("E")); // write p->c
+                    }
+                    // wait for all child to exit
+                    for (j=1;j<=2;j++) {
+                        wait(NULL);
+                    }
+                    // close used pipes
+                    for (j=1;j<=2;j++) {
+                        close(fd[2*(j-1)+1][0]); // close parent in for child -> parent
+                        close(fd[2*(j-1)][1]); // close parent out for parent -> child
+                    }
+                    printf("Parent exit\n");
                     exit(0);
                 }
                 else {
@@ -485,26 +608,26 @@ int main(int argc, char *argv[]) {
 
 // index作为最后的判断选项，来判断在相同priority，相同时间的情况下，按照index大小顺序比较
 
-// 排序按照时间排，不同算法考虑不同的排序方式
-// 时间的比较，先比较日期，再比较时间
+// [OK] 排序按照输入时间排，不同算法考虑不同的排序方式 (totalAppointmentList)
+// (时间的比较，先比较日期，再比较时间)
 
+// 从第一个开始遍历totalAppointmentList
 // reject的情况，判断有冲突的：
-// FCFS:后到的被拒绝
+// FCFS:index大的被拒绝
 // PR: 优先级低的被拒绝（默认优先级越高数字越大）
 
 // 将所有转化成数字传给pipe去分割，保证数字位数不变的情况下组合到一起
 // 比如日期转化为101-131，时间转化为1001-1300，持续时间100-159，最后一位为priority
 
-// for app in totalList:
+// for app in totalAppointmentList:
 //      if app appears in ALL app's user's list (or do not appears in rejected list): accept
 //      else if do NOT appears in any app's user's list (or appears in rejected list): reject
-
 
 // [OK] add appID in app Class; 
 // appointment caller and callees all change to user;
 
 // [OK] split total list into user lists;
-// order function (in user list); func(int*);
+// (order function (in user list); func(int*))
 // check overlap, and reject (FCFS, PR) function (in user list);
 // check totalAppList, to check all accept or reject with user lists, reject list (in total list);
 
