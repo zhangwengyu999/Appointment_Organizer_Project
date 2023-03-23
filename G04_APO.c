@@ -35,8 +35,8 @@ typedef struct User {
 typedef struct Appointment {
     int appName;
     int appID;
-    int caller; // 1
-    int* callees; // 2,3
+    // int caller; // 1
+    int* user; // 2,3
     int date;
     int time;
     int status;
@@ -93,11 +93,11 @@ int isAvailableIn(User* inUser, Appointment* inApp) {
 }
 
 // --------Appointment Class Methods----------------
-Appointment* newAppointment(int inAppName, int inCaller, int* inCallees, int inID, int inDate, int inTime, float inDuration) {
+Appointment* newAppointment(int inAppName, int* user, int inID, int inDate, int inTime, float inDuration) {
     Appointment* self=(Appointment *) malloc(sizeof(Appointment));
     self->appName=inAppName;
-    self->caller=inCaller;
-    self->callees=inCallees;
+    self->user=user;
+    // self->callees=inCallees;
     self->appID=inID;
     self->date=inDate;
     self->time=inTime;
@@ -110,12 +110,12 @@ int getAppName(Appointment* inAppName){
     return inAppName->appName;
 }
 
-int getCaller(Appointment* inCaller){
-    return inCaller->caller;
-}
+// int getCaller(Appointment* inCaller){
+//     return inCaller->caller;
+// }
 
-int* getCallee(Appointment* inCallees){
-    return inCallees->callees;
+int* getUser(Appointment* inUser){
+    return inUser->user;
 }
 
 int getDate(Appointment* inDate){
@@ -246,8 +246,8 @@ void recordApp(char* inApp) {
 
     // encode parameters for appointment from input string
     int appName = 0;
-    int caller = 0;
-    int* callees = (int*)malloc(sizeof(int) * (inAppLength - 5));
+    // int caller = 0;
+    int* user = (int*)malloc(sizeof(int) * (inAppLength - 4));
     int date = 0;
     int time = 0;
     float duration = 0.0;
@@ -257,10 +257,10 @@ void recordApp(char* inApp) {
     duration = atof(splittedApp[4]);
     
     // give caller with a ID from input order
-    standardName(splittedApp[1]);
+    // standardName(splittedApp[1]);
     for (i = 0; i < userSize; i++) {
         if (strcmp(totalUserList[i]->userName, splittedApp[1]) == 0) {
-            caller = i;
+            user[0] = i;
         }
     }
     // give each callees with a ID from input order
@@ -270,15 +270,15 @@ void recordApp(char* inApp) {
             standardName(splittedApp[j]);
             if (strcmp(totalUserList[i]->userName, splittedApp[j]) == 0) {
                 // printf("%s\n", splittedApp[j]);
-                callees[j-5] = i;
+                user[j-4] = i;
             }
         }
     }
-    Appointment* outAppointment = newAppointment(appName, caller, callees, appCount, date, time, duration);
+    Appointment* outAppointment = newAppointment(appName, user, appCount, date, time, duration);
     totalAppointmentList[appCount] = outAppointment;
-    addAppointment(totalUserList[caller], appCount);
-    for (i = 0; i < inAppLength - 5; i++) {
-        addAppointment(totalUserList[callees[i]], appCount);
+    // addAppointment(totalUserList[caller], appCount);
+    for (i = 0; i < inAppLength - 4; i++) {
+        addAppointment(totalUserList[user[i]], appCount);
     }
     appCount++;
 }
