@@ -5,5 +5,6 @@
         "__locale": "c",
         "cstring": "c",
         "typeinfo": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

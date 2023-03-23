@@ -28,7 +28,7 @@ int appCount=0;
 typedef struct User {
     int appCount;
     char* userName;
-    int* appLists; // 1,2,4,5 哪个app是他的
+    int* appLists; // 1,2,4,5 
 } User;
 
 // --------Define Appointment Class----------
@@ -179,21 +179,28 @@ char* itoa(int val, int base){ // convert int to string
 	return &buf[i+1];
 }
 
-void appToString(Appointment* inApp) {
-    // ID(4)PR(1)Date(2)Start(3)Duration(3) = 13
-    char* str = (char*) malloc(sizeof(char)*13);
-    strcat(str,itoa(inApp->appID,10));
-    // ...
+char* appToString(Appointment* inApp) {
+    // ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
+    char* str = (char*) malloc(sizeof(char)*16);
+    strcat(str,itoa((10000+inApp->appID),10)); // ID(5): 10000+id
+    int* timestamp = getDateTimeTransfer(inApp->date, inApp->time, inApp->duration);
+    strcat(str,itoa(timestamp[0],10)); // Date(3)
+    strcat(str,itoa(timestamp[1],10)); // Start(4)
+    strcat(str,itoa(timestamp[2],10)); // Duration(3)
+    strcat(str,itoa(getPriority(inApp->appName),10)); // PR(1)
+    return str;
 }
 
 // get Data and Time transfer
-int* getTimeTransfer(int inTime,float inDuration){
-    int startTime = (inTime/100)*60 + inTime%100-1080;
+int* getDateTimeTransfer(int inDate, int inTime,float inDuration){
+    int date = 100+(inDate-20230500); // 101-131
+    int startTime = 1000+((inTime/100)*60 + inTime%100-1080); // 1000-1300
     // int endTime = (inTime+ inDuration*60)-1080;
-    int duration = inDuration*60;
-    int* timeList = (int*) malloc(sizeof(int)*2);
-    timeList[0] = startTime;
-    timeList[1] = duration;
+    int duration = inDuration*60; // 001-300
+    int* timeList = (int*) malloc(sizeof(int)*3);
+    timeList[0] = date; // 3
+    timeList[1] = startTime; // 4
+    timeList[2] = duration; // 3
     return timeList;
 }
 
@@ -331,13 +338,106 @@ char** getCommandList(char* command){
 
 
 // ---------- Scheduling Module Function----------
+
+
+
 void scheduleModule() {}
 
-void FCFS(char** inAppStrList) {}
+// AsT < BsT
+int isCollision(char* inAppA, char** inAllApp, int inSize) {
+    // ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
+    int appLength = 16;
+    int i = 0;
+    int j = 0;
+    char* idA = (char*)malloc(sizeof(char) * 5);
+    char* idB = (char*)malloc(sizeof(char) * 5);
+    char* startTimeA = (char*)malloc(sizeof(char) * 4);
+    char* startTimeB = (char*)malloc(sizeof(char) * 4);
+    char* durationA = (char*)malloc(sizeof(char) * 3);
+    char* durationB = (char*)malloc(sizeof(char) * 3);
+    
+    for (j=0;j<inSize; j++) {
+        char* inAppB = inAllApp[j];
+        for (i = 0; i < 5; i++) {
+            idA[i] = inAppA[i];
+            idB[i] = inAppB[i];
+        }
+        for (i = 0; i < 4; i++) {
+            startTimeA[i] = inAppA[i+8];
+            startTimeB[i] = inAppB[i+8];
+        }
+        for (i = 0; i < 3; i++) {
+            durationA[i] = inAppA[i+12];
+            durationB[i] = inAppB[i+12];
+        }
+        if (strcmp(startTimeA, startTimeB)>0) {
+            if (atoi(startTimeA)+atoi(durationA) > atoi(startTimeB)) {
+                return 0;
+            }
+            else{
+                return 1;
+            }
+        }
+        else if(strcmp(startTimeA, startTimeB)<0){
+            if (atoi(startTimeB)+atoi(durationB) > atoi(startTimeA)) {
+                return 0;
+            }
+            else{
+                return 1;
+            }
+        }
+        else if (strcmp(idA, idB) != 0 && strcmp(startTimeA, startTimeB) == 0){
+            return 1;
+        }
+        {
+            /* code */
+        }
+        
+            return 1;
+    }
 
-void PR(char** inAppStrList) {}
+}
 
-void crossCheck(int* rejectedList, int* inAppList) {}
+// input: string list of apps 16 bit string
+// output: int list [10001, 12342, 10293, 11328, 14384]
+int* FCFS(char** inAppStrList, int inSize, int* inRejectedList, int inRejectedSize) {
+    // int* acceptAppList = (int*)malloc(sizeof(int) * inSize);
+    // int i;
+    // for (i=0;i<inSize;++i){
+    //     if ()
+    //     {
+    //         /* code */
+    //     }
+    // }
+    return NULL;
+    
+}
+
+
+// ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
+int *PR(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inRejectedSize)
+{
+    int *acceptAppList = (int *)malloc(sizeof(int) * inAppStrSize);
+    int rejectLength = inRejectedSize;
+    int acceptLength = 0;
+    int i;
+    int index;
+    for (i=0;i<inAppStrSize;i=i+index) {
+        if(!isCollision(inAppStrList[i],inAppStrList, inAppStrSize)){
+            acceptAppList[acceptLength] = inAppStrList[i];
+            acceptLength++;
+            index=1;
+        }
+        else{
+            rejectLength++;
+            inRejectedList[rejectLength] = inAppStrList[i];
+            index = 2;
+        }
+    }
+    return acceptAppList;
+}
+
+void crossCheck(int* rejectedList, int* inAppIDList) {}
 // ---------- End of Scheduling Module ----------
 
 
@@ -617,7 +717,7 @@ int main(int argc, char *argv[]) {
 // PR: 优先级低的被拒绝（默认优先级越高数字越大）
 
 // 将所有转化成数字传给pipe去分割，保证数字位数不变的情况下组合到一起
-// 比如日期转化为101-131，时间转化为1001-1300，持续时间100-159，最后一位为priority
+// 比如日期转化为101-131，时间转化为1000-1300，持续时间100-159，最后一位为priority
 
 // for app in totalAppointmentList:
 //      if app appears in ALL app's user's list (or do not appears in rejected list): accept
