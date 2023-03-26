@@ -4,7 +4,9 @@
         "sstream": "c",
         "__locale": "c",
         "cstring": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "random": "c",
+        "ios": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

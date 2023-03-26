@@ -180,14 +180,15 @@ char* itoa(int val, int base){ // convert int to string
 }
 
 char* appToString(Appointment* inApp) {
-    // ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
-    char* str = (char*) malloc(sizeof(char)*16);
+    // ID(5)Date(3)Start(4)Duration(3)PR(1)Status(1) = 17
+    char* str = (char*) malloc(sizeof(char)*17);
     strcat(str,itoa((10000+inApp->appID),10)); // ID(5): 10000+id
     int* timestamp = getDateTimeTransfer(inApp->date, inApp->time, inApp->duration);
     strcat(str,itoa(timestamp[0],10)); // Date(3)
     strcat(str,itoa(timestamp[1],10)); // Start(4)
     strcat(str,itoa(timestamp[2],10)); // Duration(3)
     strcat(str,itoa(getPriority(inApp->appName),10)); // PR(1)
+    strcat(str,"0"); // Status(1) initial status is 0 (not rejected)
     return str;
 }
 
@@ -338,29 +339,36 @@ char** getCommandList(char* command){
 
 
 // ---------- Scheduling Module Function----------
-
-
-
 void scheduleModule() {}
 
-// AsT < BsT
-int isCollision(char* inAppA, char** inAllApp, int inSize) {
-    // ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
-    int appLength = 16;
+
+int* isCollision(char* inAppA, char** inAllApp, int inSize) {
+    // ID(5)Date(3)Start(4)Duration(3)PR(1)Status(1) = 17
+    int* outCollision = (int*)malloc(sizeof(int) * inSize);
+    int collisionCount = 0;
+    int appLength = 17;
     int i = 0;
     int j = 0;
     char* idA = (char*)malloc(sizeof(char) * 5);
     char* idB = (char*)malloc(sizeof(char) * 5);
+    char* dateA = (char*)malloc(sizeof(char) * 3);
+    char* dateB = (char*)malloc(sizeof(char) * 3);
     char* startTimeA = (char*)malloc(sizeof(char) * 4);
     char* startTimeB = (char*)malloc(sizeof(char) * 4);
     char* durationA = (char*)malloc(sizeof(char) * 3);
     char* durationB = (char*)malloc(sizeof(char) * 3);
-    
+    char status = (char*)malloc(sizeof(char) * 1);
+
     for (j=0;j<inSize; j++) {
+        outCollision[j] = -1;
         char* inAppB = inAllApp[j];
         for (i = 0; i < 5; i++) {
             idA[i] = inAppA[i];
             idB[i] = inAppB[i];
+        }
+        for (i = 0; i < 3; i++) {
+            dataA[i] = inAppA[i+5];
+            dateB[i] = inAppB[i+5];
         }
         for (i = 0; i < 4; i++) {
             startTimeA[i] = inAppA[i+8];
@@ -370,74 +378,159 @@ int isCollision(char* inAppA, char** inAllApp, int inSize) {
             durationA[i] = inAppA[i+12];
             durationB[i] = inAppB[i+12];
         }
+        statusB = inAppB[16];
+
+        // different app date, no collision for sure, continue
+        if (strcmp(dateA, dateB) != 0) {
+            continue;
+        }
+        // in same data, possible collision, need to check start time and duration
         if (strcmp(startTimeA, startTimeB)>0) {
-            if (atoi(startTimeA)+atoi(durationA) > atoi(startTimeB)) {
-                return 0;
+            if (atoi(startTimeB)+atoi(durationB) <= atoi(startTimeA)) {
+                continue;
             }
-            else{
-                return 1;
+            else {
+                if (statusB == 0) {
+                    outCollision[collisionCount] = atoi(idB);
+                    collisionCount++;
+                }
             }
         }
         else if(strcmp(startTimeA, startTimeB)<0){
-            if (atoi(startTimeB)+atoi(durationB) > atoi(startTimeA)) {
-                return 0;
+            if (atoi(startTimeA)+atoi(durationA) <= atoi(startTimeB)) {
+                continue;
             }
             else{
-                return 1;
+                if (statusB == 0) {
+                    outCollision[collisionCount] = atoi(idB);
+                    collisionCount++;
+                }
             }
         }
         else if (strcmp(idA, idB) != 0 && strcmp(startTimeA, startTimeB) == 0){
-            return 1;
-        }
-        {
-            /* code */
-        }
-        
-            return 1;
+            outCollision[collisionCount] = atoi(idB);
+            collisionCount++;
+        }  
     }
-
+    return outCollision;
 }
 
 // input: string list of apps 16 bit string
 // output: int list [10001, 12342, 10293, 11328, 14384]
 int* FCFS(char** inAppStrList, int inSize, int* inRejectedList, int inRejectedSize) {
-    // int* acceptAppList = (int*)malloc(sizeof(int) * inSize);
-    // int i;
-    // for (i=0;i<inSize;++i){
-    //     if ()
-    //     {
-    //         /* code */
-    //     }
-    // }
-    return NULL;
-    
-}
-
-
-// ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
-int *PR(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inRejectedSize)
-{
     int *acceptAppList = (int *)malloc(sizeof(int) * inAppStrSize);
     int rejectLength = inRejectedSize;
     int acceptLength = 0;
     int i;
-    int index;
-    for (i=0;i<inAppStrSize;i=i+index) {
-        if(!isCollision(inAppStrList[i],inAppStrList, inAppStrSize)){
-            acceptAppList[acceptLength] = inAppStrList[i];
-            acceptLength++;
-            index=1;
+    for (i=0;i<inAppStrSize;i++) {
+        int* collisions = isCollision(inAppStrList[i],inAppStrList, inAppStrSize);
+        int k,l;
+        int collision
+        int collisionFlag = 0;
+        char* idA = (char*)malloc(sizeof(char) * 5);
+        char* idB = (char*)malloc(sizeof(char) * 5);
+
+        for (l = 0; l < 5; l++) {
+            idA[l] = inAppStrList[i][l];
         }
-        else{
-            rejectLength++;
-            inRejectedList[rejectLength] = inAppStrList[i];
-            index = 2;
+        for (k=0;k<inAppStrSize;k++) {
+            collision = collisions[k]
+            if (collision == -1 && k==0) {
+                // no collision, accept app
+                acceptAppList[acceptLength] = inAppStrList[i];
+                acceptLength++;
+                break;
+            }
+            else {
+                // collision found, reject app with higher id only
+                if (atoi(idA) > collision) {
+                    // rejected
+                    inRejectedList[rejectLength] = inAppStrList[i];
+                    rejectLength++;
+                }
+            }
         }
-    }
-    return acceptAppList;
+    } 
 }
 
-void crossCheck(int* rejectedList, int* inAppIDList) {}
+// ID(5)Date(3)Start(4)Duration(3)PR(1) = 16
+void PR(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inRejectedSize) {
+    int *acceptAppList = (int *)malloc(sizeof(int) * inAppStrSize);
+    int rejectLength = inRejectedSize;
+    int acceptLength = 0;
+    int i;
+    for (i=0;i<inAppStrSize;i++) {
+        int* collisions = isCollision(inAppStrList[i],inAppStrList, inAppStrSize);
+        int k,l;
+        int collision
+        int collisionFlag = 0;
+        char* idA = (char*)malloc(sizeof(char) * 5);
+        char* idB = (char*)malloc(sizeof(char) * 5);
+        char* prA = (char*)malloc(sizeof(char) * 1);
+        char* prB = (char*)malloc(sizeof(char) * 1);
+        for (l = 0; l < 5; l++) {
+            idA[l] = inAppStrList[i][l];
+        }
+        prA = inAppStrList[i][15]; // priorityA
+        for (k=0;k<inAppStrSize;k++) {
+            collision = collisions[k]
+            if (collision == -1 && k==0) {
+                // no collision, accept app
+                // acceptAppList[acceptLength] = inAppStrList[i];
+                // acceptLength++;
+                // break;
+                continue;
+            }
+            else {
+                // collision found, reject app with lower priority only
+                int m;
+                for (m=0;m<inAppStrSize;m++) {
+                    char* app = inAppStrList[m];
+                    // check app ID with collision
+                    // get app's ID
+                    int n;
+                    for (n = 0; n < 5; n++) {
+                        idB[n] = app[n];
+                    }
+                    if (atoi(idB) == collision) {
+                        // get app with ID:[collision]
+                        prB = app[15]; // priorityB
+                        break;
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                // prB
+                if (atoi(prA) > atoi(prB)) {
+                    // rejected
+                    inRejectedList[rejectLength] = inAppStrList[i];
+                    rejectLength++;
+
+                }
+                else if (atoi(prA) == atoi(prB)) {
+                    if (atoi(idA) > collision) {
+                        // rejected
+                        inRejectedList[rejectLength] = inAppStrList[i];
+                        rejectLength++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void crossCheck(int* rejectedList, int inRejectedSize, int* inAppIDList, int inAppStrSize) {
+    int i,j;
+    for (i = 0; i < inAppStrSize; i++) {
+        for (j = 0; j < inRejectedSize; j++) {
+            if (inAppIDList[i] == rejectedList[j]) {
+                inAppIDList[i] = 99999;
+                break;
+            }
+        }
+    }
+}
 // ---------- End of Scheduling Module ----------
 
 
