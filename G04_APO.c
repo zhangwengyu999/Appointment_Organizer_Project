@@ -534,10 +534,18 @@ void crossCheck(int* rejectedList, int inRejectedSize, int* inAppIDList, int inA
 // ---------- End of Scheduling Module ----------
 
 
-
-
 // ---------- Output Module Function ----------
-void outputModule() {}
+void outputModule() {
+    
+}
+
+
+void outputSingleUser(char **inAppStrList, int inAppStrSize, char** inTotalUserList, int totalUserNum, int inUserIndex) {
+    // total->int to convenient to calculate
+    // 
+}
+
+
 // ---------- End of Output Module ----------
 
 
