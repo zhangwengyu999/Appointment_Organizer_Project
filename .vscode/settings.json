@@ -6,7 +6,9 @@
         "cstring": "c",
         "typeinfo": "c",
         "random": "c",
-        "ios": "c"
+        "ios": "c",
+        "queue": "c",
+        "stack": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
