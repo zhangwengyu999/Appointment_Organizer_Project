@@ -1,4 +1,5 @@
 //// COMP2432 Operating Systems - Group Project
+
 //// Appointment Organizer
 //// Group 04 - CHEN Derun, LIU Minghao, YE Haowen, and ZHANG Wengyu
 //// Second Stage
@@ -437,65 +438,51 @@ int FCFS(char **inAppStrList, int inAppStrSize,char** inRejectedList, int inReje
 
     for (i=0;i<inAppStrSize;i++) {
         int* collisions = isCollision(inAppStrList[i],inAppStrList, inAppStrSize);
-        int k,l;
+        int k,l,j;
         int collision;
         int collisionFlag = 0;
         char* idA = (char*)malloc(sizeof(char) * 5);
         char* idB = (char*)malloc(sizeof(char) * 5);
-//        char prA = inAppStrList[i][15];
-//        int prAStr = prA-'0';
-//        char prB[1];
         char* temp = (char*)malloc(sizeof(char) * 17);
+        char* temp1 = (char*)malloc(sizeof(char) * 17);
         for (l = 0; l < 5; l++) {
             idA[l] = inAppStrList[i][l];
         }
         for (k=0;k<inAppStrSize;k++) {
             collision = collisions[k];
-            if (collision == -1 && k==0) {
-                // no collision, accept app
-                // acceptAppList[acceptLength] = inAppStrList[i];
-                // acceptLength++;
-                // break;
+            if (collision == -1) {
                 break;
             }
             else {
-                // collision found, reject app with lower priority only
-                int m;
-                for (m=0;m<inAppStrSize;m++) {
-                    char* app = inAppStrList[m];
-                    // check app ID with collision
-                    // get app's ID
-                    int n;
-                    for (n = 0; n < 5; n++) {
-                        idB[n] = app[n];
+                for (l = 0; l < inRejectedSize; l++) {
+                    temp = inRejectedList[l];
+                    if (strcmp(temp, idA) == 0) {
+                        collisionFlag = 1;
+                        break;
                     }
                 }
-                if (atoi(idA) > collision) {
-                    // rejected
-                    char* temp1 = (char*)malloc(sizeof(char) * 17);
-                    char* temp2 = (char*)malloc(sizeof(char) * 17);
-                    strncpy(temp1,inAppStrList[i]+5,1);
-                    strncpy(temp2,inAppStrList[i],4);
-                    temp2 = int2Str(10000+inRejectedSize,10);
-//                    printf("%s\n",temp2);
-//                    printf("%s\n",temp1);
-//                    printf(".%s\n",temp1);
-                    strcat(temp2,temp1);
-                    inRejectedList[inRejectedSize] = temp;
-//                    inRejectedList[inRejectedSize] = inAppStrList[i];
-                    inRejectedSize++;
-                    strncpy(temp,inAppStrList[i],16);
-                    strcat(temp,"1");
-                    inAppStrList[i] = temp;
-//                    printf("%s\n",inAppStrList[i]);
-                    printf("size = %d and %s\n",inRejectedSize,inRejectedList[inRejectedSize-1]);
-//                    int temp= atoi(inAppStrList[i])+1;
-//                    inAppStrList[i] = int2Str(temp,10);
+                if (collisionFlag == 1) {
+                    collisionFlag = 0;
                     break;
-
+                }
+                else {
+                    char *sss = int2Str(collision, 10);
+                    if (strcmp(idA, sss) < 0) {
+                        inRejectedList[inRejectedSize] = sss;
+                        inRejectedSize++;
+                        for(j=0;j<inAppStrSize;j++){
+                            strncpy(temp1, inAppStrList[j], 5);
+                            if (strcmp(temp1, sss) == 0) {
+                                strncpy(temp1, inAppStrList[j], 16);
+                                inAppStrList[j] = strcat(temp1, "1");
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
+        printf(">%s\n",inRejectedList[inRejectedSize-1]);
     }
     return inRejectedSize;
 }
@@ -675,282 +662,320 @@ int scheduleModule(char* inStr, char inMode, char** inRejectedList, int inReject
 
 
 // ---------- Output Module Function ----------
-void outputModule(char* inStr) {
-    // a index for clear the file
+// void outputModule(char* inStr) {
+//     int fileIndex = 0; 
+//     char* filename = (char *)malloc(sizeof(char) * 20);
     
-    // int size = strlen(inStr);
-    // if (size == 0) {
-    //     return inStr;
-    // }
-    // int numApp = size/17;
-    // char** appStrList = (char**)malloc(sizeof(char*) * numApp);
-    // int i;
-    // for (i=0;i<numApp;i++) {
-    //     appStrList[i] = (char*)malloc(sizeof(char) * 17);
-    //     strncpy(appStrList[i], inStr+(i*17), 17);
-    //     printf("%s\n", appStrList[i]);
-    // }
-    // return inStr;
-}
+//     int size = strlen(inStr);
+//     if (size == 0) {
+//         return inStr;
+//     }
+//     int numApp = size/17;
+//     char** appStrList = (char**)malloc(sizeof(char*) * numApp);
+//     int i;
+//     for (i=0;i<numApp;i++) {
+//         appStrList[i] = (char*)malloc(sizeof(char) * 17);
+//         strncpy(appStrList[i], inStr+(i*17), 17);
+//         printf("%s\n", appStrList[i]);
+//     }
+//     return inStr;
+// }
 
-void outputReject(char **inAppStrList, int inAppStrSize, char **inTotalUserList, int totalUserNum, char* filename) {
-    int appLength = 27;
-    int i = 0;
-    int j = 0;
-    char *id = (char *)malloc(sizeof(char) * 5);
-    char *date = (char *)malloc(sizeof(char) * 3);
-    char *startTime = (char *)malloc(sizeof(char) * 4);
-    char *duration = (char *)malloc(sizeof(char) * 3);
-    char *dateForOut = (char *)malloc(sizeof(char) * 10);
-    char *startTimeForOut = (char *)malloc(sizeof(char) * 10);
-    char priority;
-    char *activeUsers = (char *)malloc(sizeof(char) * 10);
-    char *activeUsersStr = (char *)malloc(sizeof(char) * 100);
-    char *caller = (char *)malloc(sizeof(char) * 20);
-    char *endTForOut = (char *)malloc(sizeof(char) * 10);
-    char *AppointmentName = (char *)malloc(sizeof(char) * 20);
-    char *appointment = (char *)malloc(sizeof(char) * 100);
+// void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList, int totalUserNum, char *filename) {
+//     int appLength = 27;
+//     int i = 0;
+//     int j = 0;
+//     char *id = (char *)malloc(sizeof(char) * 5);
+//     char *date = (char *)malloc(sizeof(char) * 3);
+//     char *startTime = (char *)malloc(sizeof(char) * 4);
+//     char *duration = (char *)malloc(sizeof(char) * 3);
+//     char *dateForOut = (char *)malloc(sizeof(char) * 10);
+//     char *startTimeForOut = (char *)malloc(sizeof(char) * 10);
+//     char priority;
+//     char *activeUsers = (char *)malloc(sizeof(char) * 10);
+//     char *activeUsersStr = (char *)malloc(sizeof(char) * 100);
+//     char *caller = (char *)malloc(sizeof(char) * 20);
+//     char *endTForOut = (char *)malloc(sizeof(char) * 10);
+//     char *AppointmentName = (char *)malloc(sizeof(char) * 20);
+//     char *appointment = (char *)malloc(sizeof(char) * 100);
+//     FILE *fp = NULL;
+//     fp = fopen(filename, "a");
+//     fprintf(fp, "\nAltogether there are %d appointments rejected\n  Date\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", inAppStrSize);
+//     for (i = 0; i < totalUserNum; i++) {
+//         fprintf(fp, "=========");
+//     }
+//     fprintf(fp, "==================================================================================================\n");    
+    
+//     for (i = 0; i < inRejectSize; i++)
+//     {
+//         fprintf(fp, "%d.", i);    
+//         // get id (0:4)
+//         for (j = 0; j < 5; j++)
+//         {
+//             id[j] = inAppStrList[i][j];
+//         }
+
+//         // get date (5:7)
+//         for (j = 0; j < 3; j++)
+//         {
+//             date[j] = inAppStrList[i][j + 5];
+//         }
+
+//         // get startTime (8:10)
+//         for (j = 0; j < 4; j++)
+//         {
+//             startTime[j] = inAppStrList[i][j + 8];
+//         }
+
+//         // get duration (11:13)
+//         for (j = 0; j < 3; j++)
+//         {
+//             duration[j] = inAppStrList[i][j + 11];
+//         }
+
+//         // get priority (15)
+//         priority = inAppStrList[i][15];
+
+//         // get activeUsers (17:24)
+//         for (j = 0; j < 10; j++)
+//         {
+//             activeUsers[j] = inAppStrList[i][j + 17];
+//         }
+
+//         for (j = 0; j < 100; j++)
+//         {
+//             appointment[j] = ' ';
+//         }
+
+//         dateForOut = int2Str(atoi(date) - 100 + 20230500, 10);
+//         for (j = 0; j < 8; j++)
+//         {
+//             appointment[j] = dateForOut[j];
+//         }
+
+//         startTimeForOut = int2Str(((atoi(startTime) - 1000) / 60 * 100 + 1800) + (atoi(startTime - 1000) % 60), 10);
+//         for (j = 12; j < 16; j++)
+//         {
+//             appointment[j] = startTimeForOut[j - 12];
+//         }
+
+//         endTForOut = int2Str(atoi(startTimeForOut) + ((atoi(duration)-100) / 60 * 100) + ((atoi(duration)-100) % 60), 10);
+//         for (j = 20; j < 24; j++)
+//         {
+//             appointment[j] = endTForOut[j - 20];
+//         }
+
+
+//         // get AppointmentName
+//         if (priority == '1')
+//         {
+//             strcpy(AppointmentName, "privateTime    ");
+//         }
+//         else if (priority == '2')
+//         {
+//             strcpy(AppointmentName, "projectMeeting ");
+//         }
+//         else if (priority == '3')
+//         {
+//             strcpy(AppointmentName, "groupStudy     ");
+//         }
+//         else if (priority == '4')
+//         {
+//             strcpy(AppointmentName, "gathering      ");
+//         }
+//         for (j = 28; j < 48; j++)
+//         {
+//             appointment[j] = AppointmentName[j - 28];
+//         }
+//         fprintf(fp, "%s", appointment);
+//         fprintf(fp, "\t\t");
+//         for (j = 0; j < 10; j++)
+//         {
+//             if (activeUsers[j] == '1')
+//             {
+//                 strcpy(activeUsersStr, inTotalUserList[j]);
+                
+//                 fprintf(fp, "%s", activeUsersStr);
+//                 fprintf(fp, "  ");
+//             }
+//         }
+//         fprintf(fp, "\n");
+//     }
+
+//     fprintf(fp, "\n\t\t\t\t\t- End of Rejected List -\n");
+//     for (i = 0; i < totalUserNum; i++) {
+//         fprintf(fp, "=========");
+//     }
+//     fprintf(fp, "===================================================================================================\n");
+//     fclose(fp);
+// }
+
+// float* outputSchd(char **inAppStrList, int inAppStrSize, char **inTotalUserList, int totalUserNum, char *filename, char* startPeriod, char* endPeriod, char inMode) {
+//     int i = 0;
+//     char *startDate = (char *)malloc(sizeof(char) * 10);
+//     char *endDate = (char *)malloc(sizeof(char) * 10);
+//     char *algorithmName = (char *)malloc(sizeof(char) * 10);
+//     float *UtilizationList = (float *)malloc(sizeof(float) * 10);
+//     int schedulePeriod = 0;
+
+//     startDate = int2Str(atoi(startPeriod) - 100 + 20230500, 10);
+//     endDate = int2Str(atoi(endPeriod) - 100 + 20230500, 10);
+//     schedulePeriod = atoi(endPeriod) - atoi(startPeriod);
+//     if (inMode == 'F') {
+//         strcpy(algorithmName, "FCFS");
+//     }
+//     else if (inMode == 'P') {
+//         strcpy(algorithmName, "PRIORITY");
+//     }
+
+//     FILE *fp = NULL;
+//     fp = fopen(filename, "a");
+//     fprintf(fp, "Period: %s to %s\n", startDate, endDate);
+//     fprintf(fp, "Algorithm used: %s\n", algorithmName);
+//     for (i = 0; i < totalUserNum; i++) {
+//         UtilizationList[i] = outputSingleUser(inAppStrList, inAppStrSize, totalUserList, totalUserNum, i, filename, schedulePeriod);
+//     }
+//     return UtilizationList;
+// }
+
+// float outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUserList, int totalUserNum, int inUserIndex, char *filename, int schedulePeriod) {
+//     // inAppStrList[index]: 27 = 5(id: 0-4)+3(date: 5-7)+4(startT: 8-11)+3(duration: 12-14)+1(priority: 15)+1(status: 16)+10(17-26)
+//     int appLength = 27;
+//     int i = 0;
+//     int j = 0;
+//     char *id = (char *)malloc(sizeof(char) * 5);
+//     char *date = (char *)malloc(sizeof(char) * 3);
+//     char *startTime = (char *)malloc(sizeof(char) * 4);
+//     char *duration = (char *)malloc(sizeof(char) * 3);
+//     char *dateForOut = (char *)malloc(sizeof(char) * 10);
+//     char *startTimeForOut = (char *)malloc(sizeof(char) * 10);
+//     char priority;
+//     char *activeUsers = (char *)malloc(sizeof(char) * 10);
+//     char *activeUsersStr = (char *)malloc(sizeof(char) * 100);
+//     char *caller = (char *)malloc(sizeof(char) * 20);
+//     char *endTForOut = (char *)malloc(sizeof(char) * 10);
+//     char *AppointmentName = (char *)malloc(sizeof(char) * 20);
+//     char *appointment = (char *)malloc(sizeof(char) * 100);
+//     float totalSingleUseTime = 0.0;
+//     int totalTime = 300*schedulePeriod; // total mins for 31 days
+//     FILE *fp = NULL;
+//     fp = fopen(filename, "a");
+//     strcpy(caller, inTotalUserList[inUserIndex]);
+//     fprintf(fp, "\n%s, you have %d appointments\n  Date\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", caller, inAppStrSize);
+//     for (i = 0; i < totalUserNum; i++) {
+//         fprintf(fp, "=========");
+//     }
+//     fprintf(fp, "==================================================================================================\n");    
+//     for (i = 0; i < inAppStrSize; i++)
+//     {
+//         // get id (0:4)
+//         for (j = 0; j < 5; j++)
+//         {
+//             id[j] = inAppStrList[i][j];
+//         }
+
+//         // get date (5:7)
+//         for (j = 0; j < 3; j++)
+//         {
+//             date[j] = inAppStrList[i][j + 5];
+//         }
+
+//         // get startTime (8:10)
+//         for (j = 0; j < 4; j++)
+//         {
+//             startTime[j] = inAppStrList[i][j + 8];
+//         }
+
+//         // get duration (11:13)
+//         for (j = 0; j < 3; j++)
+//         {
+//             duration[j] = inAppStrList[i][j + 11];
+//         }
+
+//         // get priority (15)
+//         priority = inAppStrList[i][15];
+
+//         // get activeUsers (17:24)
+//         for (j = 0; j < 10; j++)
+//         {
+//             activeUsers[j] = inAppStrList[i][j + 17];
+//         }
+
+//         for (j = 0; j < 100; j++)
+//         {
+//             appointment[j] = ' ';
+//         }
+
+//         dateForOut = int2Str(atoi(date) - 100 + 20230500, 10);
+//         for (j = 0; j < 8; j++)
+//         {
+//             appointment[j] = dateForOut[j];
+//         }
+
+//         startTimeForOut = int2Str(((atoi(startTime) - 1000) / 60 * 100 + 1800) + (atoi(startTime - 1000) % 60), 10);
+//         for (j = 12; j < 16; j++)
+//         {
+//             appointment[j] = startTimeForOut[j - 12];
+//         }
+//         totalSingleUseTime += (atoi(duration)-100);
+//         endTForOut = int2Str(atoi(startTimeForOut) + ((atoi(duration)-100) / 60 * 100) + ((atoi(duration)-100) % 60), 10);
+//         for (j = 20; j < 24; j++)
+//         {
+//             appointment[j] = endTForOut[j - 20];
+//         }
+
+
+//         // get AppointmentName
+//         if (priority == '1')
+//         {
+//             strcpy(AppointmentName, "privateTime    ");
+//         }
+//         else if (priority == '2')
+//         {
+//             strcpy(AppointmentName, "projectMeeting ");
+//         }
+//         else if (priority == '3')
+//         {
+//             strcpy(AppointmentName, "groupStudy     ");
+//         }
+//         else if (priority == '4')
+//         {
+//             strcpy(AppointmentName, "gathering      ");
+//         }
+//         for (j = 28; j < 48; j++)
+//         {
+//             appointment[j] = AppointmentName[j - 28];
+//         }
+//         fprintf(fp, "%s", appointment);
+//         fprintf(fp, "\t\t");
+//         for (j = 0; j < 10; j++)
+//         {
+//             if (activeUsers[j] == '1')
+//             {
+//                 strcpy(activeUsersStr, inTotalUserList[j]);
+                
+//                 fprintf(fp, "%s", activeUsersStr);
+//                 fprintf(fp, "  ");
+//             }
+//         }
+//         fprintf(fp, "\n");
+//     }
+
+//     fprintf(fp, "\n\t\t\t\t\t- End of %s List -\n", caller);
+//     for (i = 0; i < totalUserNum; i++) {
+//         fprintf(fp, "=========");
+//     }
+//     fprintf(fp, "===================================================================================================\n");
+//     fclose(fp);
+//     return totalSingleUseTime/totalTime;
+// }
+
+void outputPerformance(int inTotalSize, int inAcceptSize, int inRejectSize, int inTotalSize, char **inTotalUserList, int totalUserNum, float *Utilization, char *filename) {
     FILE *fp = NULL;
     fp = fopen(filename, "a");
-    fprintf(fp, "\nAltogether there are %d appointments rejected\n  Date\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", inAppStrSize);
-    for (i = 0; i < totalUserNum; i++) {
-        fprintf(fp, "=========");
-    }
-    fprintf(fp, "==================================================================================================\n");    
-    
-    for (i = 0; i < inAppStrSize; i++)
-    {
-        fprintf(fp, "%d.", i);    
-        // get id (0:4)
-        for (j = 0; j < 5; j++)
-        {
-            id[j] = inAppStrList[i][j];
-        }
+    fprintf(fp, "Performance:\n\n");
+    fprintf(fp, )
 
-        // get date (5:7)
-        for (j = 0; j < 3; j++)
-        {
-            date[j] = inAppStrList[i][j + 5];
-        }
-
-        // get startTime (8:10)
-        for (j = 0; j < 4; j++)
-        {
-            startTime[j] = inAppStrList[i][j + 8];
-        }
-
-        // get duration (11:13)
-        for (j = 0; j < 3; j++)
-        {
-            duration[j] = inAppStrList[i][j + 11];
-        }
-
-        // get priority (15)
-        priority = inAppStrList[i][15];
-
-        // get activeUsers (17:24)
-        for (j = 0; j < 10; j++)
-        {
-            activeUsers[j] = inAppStrList[i][j + 17];
-        }
-
-        for (j = 0; j < 100; j++)
-        {
-            appointment[j] = ' ';
-        }
-
-        dateForOut = int2Str(atoi(date) - 100 + 20230500, 10);
-        for (j = 0; j < 8; j++)
-        {
-            appointment[j] = dateForOut[j];
-        }
-
-        startTimeForOut = int2Str(((atoi(startTime) - 1000) / 60 * 100 + 1800) + (atoi(startTime - 1000) % 60), 10);
-        for (j = 12; j < 16; j++)
-        {
-            appointment[j] = startTimeForOut[j - 12];
-        }
-
-        endTForOut = int2Str(atoi(startTimeForOut) + ((atoi(duration)-100) / 60 * 100) + ((atoi(duration)-100) % 60), 10);
-        for (j = 20; j < 24; j++)
-        {
-            appointment[j] = endTForOut[j - 20];
-        }
-
-
-        // get AppointmentName
-        if (priority == '1')
-        {
-            strcpy(AppointmentName, "privateTime    ");
-        }
-        else if (priority == '2')
-        {
-            strcpy(AppointmentName, "projectMeeting ");
-        }
-        else if (priority == '3')
-        {
-            strcpy(AppointmentName, "groupStudy     ");
-        }
-        else if (priority == '4')
-        {
-            strcpy(AppointmentName, "gathering      ");
-        }
-        for (j = 28; j < 48; j++)
-        {
-            appointment[j] = AppointmentName[j - 28];
-        }
-        fprintf(fp, "%s", appointment);
-        fprintf(fp, "\t\t");
-        for (j = 0; j < 10; j++)
-        {
-            if (activeUsers[j] == '1')
-            {
-                strcpy(activeUsersStr, inTotalUserList[j]);
-                
-                fprintf(fp, "%s", activeUsersStr);
-                fprintf(fp, "  ");
-            }
-        }
-        fprintf(fp, "\n");
-    }
-
-    fprintf(fp, "\n\t\t\t\t\t- End of Rejected List -\n");
-    for (i = 0; i < totalUserNum; i++) {
-        fprintf(fp, "=========");
-    }
-    fprintf(fp, "===================================================================================================\n");
-    fclose(fp);
-}
-
-
-
-void outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUserList, int totalUserNum, int inUserIndex, char* filename) {
-    // inAppStrList[index]: 27 = 5(id: 0-4)+3(date: 5-7)+4(startT: 8-11)+3(duration: 12-14)+1(priority: 15)+1(status: 16)+10(17-26)
-    int appLength = 27;
-    int i = 0;
-    int j = 0;
-    char *id = (char *)malloc(sizeof(char) * 5);
-    char *date = (char *)malloc(sizeof(char) * 3);
-    char *startTime = (char *)malloc(sizeof(char) * 4);
-    char *duration = (char *)malloc(sizeof(char) * 3);
-    char *dateForOut = (char *)malloc(sizeof(char) * 10);
-    char *startTimeForOut = (char *)malloc(sizeof(char) * 10);
-    char priority;
-    char *activeUsers = (char *)malloc(sizeof(char) * 10);
-    char *activeUsersStr = (char *)malloc(sizeof(char) * 100);
-    char *caller = (char *)malloc(sizeof(char) * 20);
-    char *endTForOut = (char *)malloc(sizeof(char) * 10);
-    char *AppointmentName = (char *)malloc(sizeof(char) * 20);
-    char *appointment = (char *)malloc(sizeof(char) * 100);
-    FILE *fp = NULL;
-    fp = fopen(filename, "a");
-    strcpy(caller, inTotalUserList[inUserIndex]);
-    fprintf(fp, "\n%s, you have %d appointments\n  Date\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", caller, inAppStrSize);
-    for (i = 0; i < totalUserNum; i++) {
-        fprintf(fp, "=========");
-    }
-    fprintf(fp, "==================================================================================================\n");    
-    for (i = 0; i < inAppStrSize; i++)
-    {
-        // get id (0:4)
-        for (j = 0; j < 5; j++)
-        {
-            id[j] = inAppStrList[i][j];
-        }
-
-        // get date (5:7)
-        for (j = 0; j < 3; j++)
-        {
-            date[j] = inAppStrList[i][j + 5];
-        }
-
-        // get startTime (8:10)
-        for (j = 0; j < 4; j++)
-        {
-            startTime[j] = inAppStrList[i][j + 8];
-        }
-
-        // get duration (11:13)
-        for (j = 0; j < 3; j++)
-        {
-            duration[j] = inAppStrList[i][j + 11];
-        }
-
-        // get priority (15)
-        priority = inAppStrList[i][15];
-
-        // get activeUsers (17:24)
-        for (j = 0; j < 10; j++)
-        {
-            activeUsers[j] = inAppStrList[i][j + 17];
-        }
-
-        for (j = 0; j < 100; j++)
-        {
-            appointment[j] = ' ';
-        }
-
-        dateForOut = int2Str(atoi(date) - 100 + 20230500, 10);
-        for (j = 0; j < 8; j++)
-        {
-            appointment[j] = dateForOut[j];
-        }
-
-        startTimeForOut = int2Str(((atoi(startTime) - 1000) / 60 * 100 + 1800) + (atoi(startTime - 1000) % 60), 10);
-        for (j = 12; j < 16; j++)
-        {
-            appointment[j] = startTimeForOut[j - 12];
-        }
-
-        endTForOut = int2Str(atoi(startTimeForOut) + ((atoi(duration)-100) / 60 * 100) + ((atoi(duration)-100) % 60), 10);
-        for (j = 20; j < 24; j++)
-        {
-            appointment[j] = endTForOut[j - 20];
-        }
-
-
-        // get AppointmentName
-        if (priority == '1')
-        {
-            strcpy(AppointmentName, "privateTime    ");
-        }
-        else if (priority == '2')
-        {
-            strcpy(AppointmentName, "projectMeeting ");
-        }
-        else if (priority == '3')
-        {
-            strcpy(AppointmentName, "groupStudy     ");
-        }
-        else if (priority == '4')
-        {
-            strcpy(AppointmentName, "gathering      ");
-        }
-        for (j = 28; j < 48; j++)
-        {
-            appointment[j] = AppointmentName[j - 28];
-        }
-        fprintf(fp, "%s", appointment);
-        fprintf(fp, "\t\t");
-        for (j = 0; j < 10; j++)
-        {
-            if (activeUsers[j] == '1')
-            {
-                strcpy(activeUsersStr, inTotalUserList[j]);
-                
-                fprintf(fp, "%s", activeUsersStr);
-                fprintf(fp, "  ");
-            }
-        }
-        fprintf(fp, "\n");
-    }
-
-    fprintf(fp, "\n\t\t\t\t\t- End of %s List -\n", caller);
-    for (i = 0; i < totalUserNum; i++) {
-        fprintf(fp, "=========");
-    }
-    fprintf(fp, "===================================================================================================\n");
-    fclose(fp);
 }
 
 // ---------- End of Output Module ----------
@@ -1070,8 +1095,14 @@ int main(int argc, char *argv[]) {
                             // printf("Scheduling Module Receive Apps %d <- Parent: %s\n", i, recvAppStr);
                             outRejectedListSize = scheduleModule(recvAppStr, scheduleMode, outRejectedList, outRejectedListSize);
                         }
-                        char* outRejectedStr = (char*) malloc(sizeof(char)*5*outRejectedListSize+1);
+                        char* outRejectedStr = (char*) malloc(sizeof(char)*5*outRejectedListSize+1+4);
+                        char* rejectedNumStr = (char*) malloc(sizeof(char)*4);
+                        rejectedNumStr[0] = outRejectedListSize/1000 + '0';
+                        rejectedNumStr[1] = (outRejectedListSize%1000)/100 + '0';
+                        rejectedNumStr[2] = (outRejectedListSize%100)/10 + '0';
+                        rejectedNumStr[3] = outRejectedListSize%10 + '0';
                         strcat(outRejectedStr, "A");
+                        strcat(outRejectedStr, rejectedNumStr);
                         int j;
                         for (j=0;j<outRejectedListSize;j++) {
                             strcat(outRejectedStr, outRejectedList[j]);
@@ -1232,6 +1263,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     int j;
+                    char buf2[755]; // 5*150+1+4
                     for (j=0; j<userSize; j++) {
                         User* currUser = totalUserList[j];
                         int userAppSize = currUser->appCount;
@@ -1241,7 +1273,7 @@ int main(int argc, char *argv[]) {
 
                         // strcat(userAppStr, "A"); // A for App
                         userAppStr[0]='A';
-                        char buf2[751]; // 5*150+1
+                        
                         int k;
                         // convert user's all app into appStr, and concat into userAppStr
                         for (k=0;k<userAppSize;k++) {
@@ -1255,14 +1287,34 @@ int main(int argc, char *argv[]) {
 
                         // wait for schedule module to send ack
                         while(1) {
-                            int m = read(fd[1][0],buf2,751);
+                            int m = read(fd[1][0],buf2,755);
                             if (m>0 && buf2[0]=='A') { // get ack from schedule module
-                            printf("Parent <- Schedule Module: %s\n", buf2+1);
+                            printf("Parent <- Schedule Module: %s\n", buf2+1+4);
                                 break;
                             }
                         }
                     }
                     // output module command
+                    // get reject count
+                    char* rejectCountStr = (char*) malloc(sizeof(char)*4+1);
+                    strncpy(rejectCountStr,buf2+1,4);
+                    int rejectCount = atoi(rejectCountStr);
+
+                    char* outputInitCmd = (char*) malloc(sizeof(char)*(10+userSize*20));
+
+                    strcat(outputInitCmd, "O");
+                    strcat(outputInitCmd, int2Str(startTime-20230400,10)); // start time
+                    strcat(outputInitCmd, int2Str(endTime-20230400,10)); // end time
+                    strcat(outputInitCmd, &scheduleType); // schedule mode
+                    strcat(outputInitCmd, int2Str(userSize/10, 10)); // user size
+                    strcat(outputInitCmd, int2Str(userSize%10, 10)); // user size
+                    int p;
+                    for (p=0;p<userSize;p++) {
+                        char* userName = totalUserList[p]->userName;
+                        
+                    }
+                    
+                    
                     
 
                     

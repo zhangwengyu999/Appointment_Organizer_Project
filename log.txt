@@ -118,3 +118,13 @@ projectMeeting paul 20230501 1800 2.0 lucy
 privateTime paul 20230501 1900 1.0 mary
 gathering paul 20230501 2000 1.0 mary
 groupStudy paul 20230501 2000 2.0 mary
+groupStudy paul 20230501 1800 1.0 mary lucy
+projectMeeting paul 20230501 1800 2.0 lucy
+privateTime paul 20230501 1900 1.0 mary
+gathering paul 20230501 2000 1.0 mary
+groupStudy paul 20230501 2000 2.0 mary
+groupStudy paul 20230501 1800 1.0 mary lucy
+projectMeeting paul 20230501 1800 2.0 lucy
+privateTime paul 20230501 1900 1.0 mary
+gathering paul 20230501 2000 1.0 mary
+groupStudy paul 20230501 2000 2.0 mary
