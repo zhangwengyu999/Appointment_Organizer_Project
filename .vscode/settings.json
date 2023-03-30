@@ -11,7 +11,11 @@
         "stack": "c",
         "__config": "c",
         "iterator": "c",
-        "bitset": "c"
+        "bitset": "c",
+        "*.tcc": "c",
+        "mutex": "c",
+        "cmath": "c",
+        "tuple": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

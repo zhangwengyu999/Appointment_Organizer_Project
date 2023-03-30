@@ -257,7 +257,7 @@ void recordApp(char* inApp) {
     strcpy(inAppCopy, inApp);
 
     char* filename = (char*)malloc(sizeof(char) * 10);
-    filename = "log.txt";
+    filename = "All_Requests.dat";
     FILE* fp = fopen(filename, "a");
     fprintf(fp, "%s\n", inAppCopy);
     fclose(fp);
@@ -309,21 +309,34 @@ void recordApp(char* inApp) {
     }
     
     // give caller with a ID from input order
+    int callerFound = 0;
     standardName(splittedApp[1]);
     for (i = 0; i < userSize; i++) {
         if (strcmp(totalUserList[i]->userName, splittedApp[1]) == 0) {
             user[0] = i;
+            callerFound = 1;
             break;
         }
     }
+    if (callerFound == 0) {
+        printf("-> [Caller not found]\n");
+        return;
+    }
     // give each callees with a ID from input order
+    int calleeCount = 0;
     for (i = 0; i < userSize; i++) {
         for (j = 5; j < inAppLength; j++) {
             standardName(splittedApp[j]);
             if (strcmp(totalUserList[i]->userName, splittedApp[j]) == 0) {
                 user[j-4] = i;
+                calleeCount++;
             }
         }
+    }
+
+    if (calleeCount != inAppLength-4-1) {
+        printf("-> [Callee not found]\n");
+        return;
     }
     Appointment* outAppointment = newAppointment(appName, user, inAppLength-4, appCount, date, time, duration);
     totalAppointmentList[appCount] = outAppointment;
@@ -349,15 +362,20 @@ char** getCommandList(char* command){
     char* split = strtok(cmdCopy," ");
     if(strcasecmp(split,"f") == 0){ // file cmd
         char* split= strtok(NULL," ");
-        fp2 = fopen(split,"r");
-        while(!feof(fp2)){
-            str=fgets(str,255,fp2);
-            if (str != NULL){
-                strList[num] = (char*) malloc(sizeof(char)*255);
-                str[strlen(str)-1] = 0;
-                strcpy(strList[num],str);
-                num++;
-            } 
+        if((fp2 = fopen(split,"r"))){
+            while(!feof(fp2)){
+                str=fgets(str,255,fp2);
+                if (str != NULL){
+                    strList[num] = (char*) malloc(sizeof(char)*255);
+                    str[strlen(str)-1] = 0;
+                    strcpy(strList[num],str);
+                    num++;
+                } 
+            }
+        }
+        else{
+            fileNum = 0;
+            return strList;
         }
         fileNum=num;
         fclose(fp2);
@@ -378,109 +396,115 @@ char** getCommandList(char* command){
 
 int* isCollision(char* inAppA, char** inAllApp, int inSize) {
     // ID(5)Date(3)Start(4)Duration(3)PR(1)Status(1) = 17
-    int* outCollision = (int*)malloc(sizeof(int) * inSize);
+    int *outCollision = (int *) malloc(sizeof(int) * inSize);
     int collisionCount = 0;
     int appLength = 17;
     int i = 0;
     int j = 0;
-    char* idA = (char*)malloc(sizeof(char) * 5);
-    char* idB = (char*)malloc(sizeof(char) * 5);
-    char* dateA = (char*)malloc(sizeof(char) * 3);
-    char* dateB = (char*)malloc(sizeof(char) * 3);
-    char* startTimeA = (char*)malloc(sizeof(char) * 4);
-    char* startTimeB = (char*)malloc(sizeof(char) * 4);
-    char* durationA = (char*)malloc(sizeof(char) * 3);
-    char* durationB = (char*)malloc(sizeof(char) * 3);
+    char *idA = (char *) malloc(sizeof(char) * 5);
+    char *idB = (char *) malloc(sizeof(char) * 5);
+    char *dateA = (char *) malloc(sizeof(char) * 3);
+    char *dateB = (char *) malloc(sizeof(char) * 3);
+    char *startTimeA = (char *) malloc(sizeof(char) * 4);
+    char *startTimeB = (char *) malloc(sizeof(char) * 4);
+    char *durationA = (char *) malloc(sizeof(char) * 3);
+    char *durationB = (char *) malloc(sizeof(char) * 3);
     char status;
 
-    for (j=0;j<inSize; j++) {
+    for (j = 0; j < inSize; j++) {
+//        printf("inSize: %d", inSize);
         outCollision[j] = -1;
-        char *inAppB = inAllApp[j];
-        for (i = 0; i < 5; i++) {
-            idA[i] = inAppA[i];
-            idB[i] = inAppB[i];
-        }
-        for (i = 0; i < 3; i++) {
-            dateA[i] = inAppA[i + 5];
-            dateB[i] = inAppB[i + 5];
-        }
-        for (i = 0; i < 4; i++) {
-            startTimeA[i] = inAppA[i + 8];
-            startTimeB[i] = inAppB[i + 8];
-        }
-        for (i = 0; i < 3; i++) {
-            durationA[i] = inAppA[i + 12];
-            durationB[i] = inAppB[i + 12];
-        }
-        status = inAppB[16];
-
-        if (strcmp(idA, idB) < 0) {
+        strncpy(idA, inAppA, 5);
+        strncpy(idB, inAllApp[j], 5);
+        if (strcmp(idA, idB) >= 0) {
+            continue;
+        } else {
+            status = inAllApp[j][16];
             if (status == '1') {
                 return (int *) -1;
-            }
-            // same app, no collision for sure, continue
-            // different app date, no collision for sure, continue
-            if (strcmp(dateA, dateB) != 0) {
-                continue;
-            }
-            // in same data, possible collision, need to check start time and duration
-            if (strcmp(startTimeA, startTimeB) > 0) {
-                if (atoi(startTimeB) + atoi(durationB) <= atoi(startTimeA)) {
+            } else {
+                strncpy(dateA, inAppA + 5, 3);
+                strncpy(dateB, inAllApp[j] + 5, 3);
+                if (strcmp(dateA, dateB) != 0) {
                     continue;
                 } else {
-                    if (status == 0) {
+                    strncpy(startTimeA, inAppA + 8, 4);
+                    strncpy(startTimeB, inAllApp[j] + 8, 4);
+                    if (strcmp(startTimeA, startTimeB) == 0) {
                         outCollision[collisionCount] = atoi(idB);
                         collisionCount++;
+                       printf("idB: %d\n", atoi(idB));
+                       printf(">1.collisionCount: %d\n", collisionCount);
+                        continue;
+                    } else if (strcmp(startTimeA, startTimeB) > 0) {
+                        strncpy(durationA, inAppA + 12, 3);
+                        strncpy(durationB, inAllApp[j] + 12, 3);
+                        if (atoi(startTimeA) < atoi(startTimeB) + atoi(durationB)- 100) {
+                            outCollision[collisionCount] = atoi(idB);
+                            collisionCount++;
+                           printf("idB: %d\n", atoi(idB));
+                           printf(">2.collisionCount: %d\n", collisionCount);
+                            continue;
+                        }
+                    } else {
+                        strncpy(durationA, inAppA + 12, 3);
+                        strncpy(durationB, inAllApp[j] + 12, 3);
+                        if (atoi(startTimeA) + atoi(durationA) -100 > atoi(startTimeB) ) {
+                            outCollision[collisionCount] = atoi(idB);
+                            collisionCount++;
+                            printf("idB: %d", atoi(idB));
+                            printf(">3.collisionCount: %d\n", collisionCount);
+                            continue;
+                        }
                     }
                 }
-            } else if (strcmp(startTimeA, startTimeB) < 0) {
-                if (atoi(startTimeA) + atoi(durationA) <= atoi(startTimeB)) {
-                    continue;
-                } else {
-                    if (status-'0' == 0) {
-                        outCollision[collisionCount] = atoi(idB);
-                        collisionCount++;
-
-                    }
-                }
-            } else if (strcmp(idA, idB) != 0 && strcmp(startTimeA, startTimeB) == 0) {
-                outCollision[collisionCount] = atoi(idB);
-                collisionCount++;
             }
-        }
-        else{
-            continue;
         }
     }
+   printf(">>>>>collisionCount: %d\n", collisionCount);
+   for (i = 0; i < collisionCount; i++) {
+       printf(">>>>>outCollision: %d\n", outCollision[i]);
+   }
     return outCollision;
 }
 
 // input: string list of apps 17 bit string
 // output: int list [10001, 12342, 10293, 11328, 14384]
 int FCFS(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inRejectedSize) {
-    printf("FCFS1\n");
+    printf(">FCFSInit\n");
 //    int *acceptAppList = (int *)malloc(sizeof(int) * inAppStrSize);
 //    int acceptLength = 0;
-    int i,k,l,j,m;
+    int i,k,l,j,m,n,o;
+    int rejectedListJudge = 0;
+    if (inRejectedSize == 0) {
+        rejectedListJudge = 0;
+    }
+    else{
+        rejectedListJudge = 1;
+    }
 
     for (i=0;i<inAppStrSize;i++) {
-        printf("FCFS2\n");
+//        printf("inAppStrSize: %d\n",inAppStrSize);
+        printf(">FCFSStart\n");
+        printf("--------inAppStrList[%d]: %s\n",i,inAppStrList[i]);
         int* collisions = isCollision(inAppStrList[i],inAppStrList, inAppStrSize);
-        printf("collisionFinish\n");
+//        for (n = 0; n < sizeof(collisions); ++n) {
+//            printf("--------collisions[%d]: %d ",n,collisions[n]);
+//            printf("\n");
+//        }
+//        printf("collisionsSize: %lu\n",sizeof(collisions));
         int collisionSize =0;
         int collision;
-        int collisionFlag = 0;
         int existCheck = 0;
         char* idA = (char*)malloc(sizeof(char) * 5);
         char* temp = (char*)malloc(sizeof(char) * 17);
         while (collisions[collisionSize] != -1) {
             collisionSize++;
         }
-        for (l = 0; l < 5; l++) {
-            idA[l] = inAppStrList[i][l];
-        }
+        printf("collisionSize: %d\n",collisionSize);
+        strncpy(idA, inAppStrList[i], 5);
         if (inAppStrList[i][16] == '1') {
-            printf("rejected\n");
+            printf("rejectedAlreadyBefore\n");
             continue;
         }
         if(collisionSize==0) {
@@ -489,23 +513,44 @@ int FCFS(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inReject
         }
         else {
             for (k = 0; k < collisionSize; k++) {
-                collision = collisions[0];
-                for (m = 0; m < collisionSize; ++m) {
+                collision = collisions[k];
+                for (m = 0; m < inRejectedSize; ++m) {
+                    printf(">>>>>collision: %d\n",collision);
+                    printf(">>>>>inRejectedList[%d]: %d\n",m,inRejectedList[m]);
                     if (collision == inRejectedList[m]) {
-                        existCheck++;
+                        existCheck=1;
+                        printf("AlreadyInRejectList");
                         break;
                     }
                 }
+                printf(">>>>>>>>>>>>>>>>>existCheck: %d\n",existCheck);
                 if (atoi(idA) < collision && existCheck == 0) {
                     inRejectedList[inRejectedSize] = collision;
                     inRejectedSize++;
-                    printf("notBeforeReject\n");
+                    printf("SuccessfullyAddInRejectList\n");
+                }
+                if ((atoi(idA) < collision && existCheck == 0) || existCheck == 1) {
                     for (j = 0; j < inAppStrSize; j++) {
                         strncpy(temp, inAppStrList[j], 5);
                         if (atoi(temp) == collision) {
                             strncpy(temp, inAppStrList[j], 16);
                             inAppStrList[j] = strcat(temp, "1");
-                            printf("collCompare\n");
+                            printf("inAppStrList[%d]: %s\n",j,inAppStrList[j]);
+                            printf("successfullyTurnOne\n");
+                            break;
+                        }
+                    }
+                }
+                if (rejectedListJudge == 1 && inAppStrList[i][16] != '1') {
+                    for (o = 0; o < inRejectedSize; ++o) {
+                        if (atoi(idA) == inRejectedList[o]) {
+                            while (o < inRejectedSize - 1) {
+                                inRejectedList[o] = inRejectedList[o + 1];
+                                inRejectedList[o + 1] = -1;
+                                o++;
+                            }
+                            inRejectedSize--;
+                            printf("inRejectedList[%d]: %d\n", m, inRejectedList[m]);
                             break;
                         }
                     }
@@ -514,8 +559,16 @@ int FCFS(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inReject
                 break;
             }
         }
+        printf("inRejectedSize: %d\n",inRejectedSize);
+        for (j = 0; j < inRejectedSize; ++j) {
+            printf("inRejectedList: %d ",inRejectedList[j]);
+        }
     }
-    printf("FCFS3\n");
+    for (j = 0; j < inAppStrSize; ++j) {
+        inAppStrList[j][16] = '0';
+    }
+    printf(">FCFSEnd\n");
+
     return inRejectedSize;
 }
 
@@ -523,90 +576,185 @@ int FCFS(char **inAppStrList, int inAppStrSize,int* inRejectedList, int inReject
 int PR(char **inAppStrList, int inAppStrSize, int* inRejectedList, int inRejectedSize) {
     int *acceptAppList = (int *)malloc(sizeof(int) * inAppStrSize);
     int acceptLength = 0;
-    int i;
+    int i,j,m;
     char* idA = (char*)malloc(sizeof(char) * 5);
     char* idB = (char*)malloc(sizeof(char) * 5);
     char* temp = (char*)malloc(sizeof(char) * 17);
+    char *tempId = (char *) malloc(sizeof(char) * 5);
+    int rejectedListJudge = 0;
+    if (inRejectedSize == 0) {
+        rejectedListJudge = 0;
+    }
+    else{
+        rejectedListJudge = 1;
+    }
 
     for (i=0;i<inAppStrSize;i++) {
         int existCheck = 0;
         int* collisions = isCollision(inAppStrList[i],inAppStrList, inAppStrSize);
-        int k,l;
+        int k,l,o;
         int collision;
-        int collisionFlag = 0;
-        char prA = inAppStrList[i][15];
-        int prAStr = prA-'0';
+        int collisionSize =0;
+        char prAStr = inAppStrList[i][15];
+        int prA = prAStr-'0';
         char prB[1];
-        for (l = 0; l < 5; l++) {
-            idA[l] = inAppStrList[i][l];
+        while (collisions[collisionSize] != -1) {
+            collisionSize++;
         }
-        for (k=0;k<inAppStrSize;k++) {
+        strncpy(idA, inAppStrList[i], 5);
+        printf("idA: %d\n",atoi(idA));
+
+        if (inAppStrList[i][16] == '1') {
+            printf("rejectedAlreadyBefore\n");
+            continue;
+        }
+        if(collisionSize==0) {
+            printf("noCollision\n");
+            continue;
+        }
+        for (k=0;k<collisionSize;k++) {
             collision = collisions[k];
-            if (collision == -1 && k==0) {
-                break;
-            }
-            else {
-                int m;
-                for (m=0;m<inAppStrSize;m++) {
-                    char* app = inAppStrList[m];
-                    int n;
-                    for (n = 0; n < 5; n++) {
-                        idB[n] = app[n];
-                    }
-                    if (atoi(idB) == collision) {
-                        *prB = app[15]; // priorityB
-                        break;
-                    }
-                    else {
-                        continue;
-                    }
-                }
-                // prB
-                if (prAStr > atoi(prB)) {
-                    // rejected
-                    char* temp1 = (char*)malloc(sizeof(char) * 17);
-                    strncpy(temp1,inAppStrList[i],5);
-                    for (m = 0; m < inRejectedSize; ++m) {
-                        if (atoi(temp1)== inRejectedList[m]) {
-                            existCheck++;
-                            break;
-                        }
-                    }
-                    if (existCheck == 0) {
-                        inRejectedList[inRejectedSize] = atoi(temp1);
-                        inRejectedSize++;
-                        strncpy(temp,inAppStrList[i],16);
-                        strcat(temp,"1");
-                        inAppStrList[i] = temp;
-                    }
+            for (m=0;m<inAppStrSize;m++) {
+                char* app = inAppStrList[m];
+                int n;
+                strncpy(idB, app, 5);
+                if (atoi(idB) == collision) {
+                    *prB = app[15]; // priorityB
                     break;
                 }
-                else if (prAStr == atoi(prB)) {
-                    if (atoi(idA) > collision) {
-                        // rejected
-                        char *temp1 = (char *) malloc(sizeof(char) * 17);
-                        strncpy(temp1, inAppStrList[i], 5);
-                        for (m = 0; m < inRejectedSize; ++m) {
-                            if (atoi(temp1) == inRejectedList[m]) {
-                                existCheck++;
-                                break;
+            }
+            for (o = 0;  o< inRejectedSize; o++) {
+                printf(">.>.>inRejectedList[%d]: %d\n", o, inRejectedList[o]);
+            }
+            for (m = 0; m < inRejectedSize; ++m) {
+                if (collision == inRejectedList[m]) {
+                    printf(">>>>inRejectedList[%d]: %d\n", m, inRejectedList[m]);
+                    if (prA < atoi(prB) || prA == atoi(prB) && atoi(idA) < collision) {
+                        existCheck = 1;
+                    }
+                    printf("AlreadyInRejectList\n");
+                    break;
+                }
+                else if (atoi(idA) == inRejectedList[m]) {
+                    printf("idA: %d\n", atoi(idA));
+                    printf(">>>>inRejectedList[%d]: %d\n", m, inRejectedList[m]);
+                    if (prA > atoi(prB) || prA == atoi(prB) && atoi(idA) > collision) {
+                        existCheck = 2;
+                    }
+                    printf("AlreadyInRejectList\n");
+                    break;
+                }
+            }
+            printf("prA: %d, prB: %d\n",prA,atoi(prB));
+            printf("existCheck: %d\n",existCheck);
+            if((prA < atoi(prB) && existCheck!=2) || (prA == atoi(prB) && atoi(idA) < collision && existCheck!=2)){
+                // rejected
+                printf("inOne\n");
+                strncpy(tempId, idB, 5);
+                if (existCheck == 0) {
+                    if (rejectedListJudge == 1) {
+                        printf("%s", tempId);
+                        printf("%d", inRejectedList[inRejectedSize - 1]);
+                        inRejectedSize++;
+                        int tempRejectedSize = inRejectedSize;
+                        while(atoi(tempId) < inRejectedList[tempRejectedSize - 2]&& inRejectedList[0]!= atoi(tempId)){
+                            int tempList = inRejectedList[tempRejectedSize - 2];
+                            inRejectedList[tempRejectedSize - 2] = atoi(tempId);
+                            inRejectedList[tempRejectedSize - 1] = tempList;
+                            printf("SwitchingSuccess\n");
+                            tempRejectedSize--;
+                            for (o = 0;  o< inRejectedSize; o++) {
+                                printf(">.>.>inRejectedList[%d]: %d\n", o, inRejectedList[o]);
                             }
                         }
-                        if (existCheck == 0) {
-                            inRejectedList[inRejectedSize] = atoi(temp1);
-                            inRejectedSize++;
-                            strncpy(temp, inAppStrList[i], 16);
-                            strcat(temp, "1");
-                            inAppStrList[i] = temp;
-                        }
+                    }
+                    else{
+                        inRejectedList[inRejectedSize] = atoi(tempId);
+                        inRejectedSize++;
+                    }
+                }
+                printf("........inRejectedList[%d]: %d\n", inRejectedSize - 1, inRejectedList[inRejectedSize - 1]);
+                for (j = 0; j < inAppStrSize; j++) {
+                    strncpy(temp, inAppStrList[j], 5);
+                    if (atoi(temp) == collision) {
+                        strncpy(temp, inAppStrList[j], 16);
+                        inAppStrList[j] = strcat(temp, "1");
+                        printf("inAppStrList[%d]: %s\n",j,inAppStrList[j]);
+                        printf("successfullyTurnOne\n");
                         break;
                     }
                 }
             }
+            else if ((prA > atoi(prB) && existCheck!=1) || (prA == atoi(prB) && atoi(idA) > collision && existCheck!=1)) {
+                // accepted
+                printf("inTwo\n");
+                strncpy(tempId, idA, 5);
+                if (existCheck == 0) {
+                    if (rejectedListJudge == 1) {
+                        printf("%s", tempId);
+                        printf("%d", inRejectedList[inRejectedSize - 1]);
+                        inRejectedSize++;
+                        int tempRejectedSize = inRejectedSize;
+                        while(atoi(tempId) < inRejectedList[tempRejectedSize - 2] && inRejectedList[0]!= atoi(tempId)){
+                            int tempList = inRejectedList[tempRejectedSize - 2];
+                            inRejectedList[tempRejectedSize - 2] = atoi(tempId);
+                            inRejectedList[tempRejectedSize - 1] = tempList;
+                            printf("SwitchingSuccess\n");
+                            tempRejectedSize--;
+                            for (o = 0;  o< inRejectedSize; o++) {
+                                printf(">.>.>inRejectedList[%d]: %d\n", o, inRejectedList[o]);
+                            }
+                        }
+                    }
+                    else{
+                        inRejectedList[inRejectedSize] = atoi(tempId);
+                        inRejectedSize++;
+                    }
+                }
+                strncpy(temp, inAppStrList[i], 16);
+                inAppStrList[i] = strcat(temp, "1");
+            }
+            if (existCheck == 1) {
+                for (j = 0; j < inAppStrSize; j++) {
+                    strncpy(temp, inAppStrList[j], 5);
+                    if (atoi(temp) == atoi(idA)) {
+                        strncpy(temp, inAppStrList[j], 16);
+                        inAppStrList[j] = strcat(temp, "1");
+                        printf("inAppStrList[%d]: %s\n",j,inAppStrList[j]);
+                        printf("successfullyTurnOne\n");
+                        break;
+                    }
+                }
+            }
+            printf("idA: %d\n",atoi(idA));
+            printf("inRejectedSize: %d\n",inRejectedSize);
+            printf("[i][16]%d%c/n",i,inAppStrList[i][16]);
+            if (rejectedListJudge == 1 && inAppStrList[i][16] != '1') {
+                for ( o= 0; o<inRejectedSize ; ++o) {
+                    if (atoi(idA) == inRejectedList[o]) {
+                        while(o < inRejectedSize-1) {
+                            inRejectedList[o] = inRejectedList[o+1];
+                            inRejectedList[o+1] = -1;
+                            o++;
+                        }
+                        inRejectedSize--;
+                        break;
+                    }
+                }
+            }
+            printf("<<<<inRejectedSize: %d\n",inRejectedSize);
+            for (o = 0;  o< inRejectedSize; o++) {
+                printf(">.>.>inRejectedList[%d]: %d\n", o, inRejectedList[o]);
+            }
         }
+        printf("PREnd\n");
+    }
+    for (j = 0; j < inAppStrSize; ++j) {
+        inAppStrList[j][16] = '0';
     }
     return inRejectedSize;
 }
+
 
 int scheduleModule(char* inStr, char inMode, int* inRejectedList, int inRejectSize) {
     int size = strlen(inStr);
@@ -619,17 +767,13 @@ int scheduleModule(char* inStr, char inMode, int* inRejectedList, int inRejectSi
     for (i=0;i<numApp;i++) {
         appStrList[i] = (char*)malloc(sizeof(char) * 17);
         strncpy(appStrList[i], inStr+(i*17), 17);
-        printf("%s\n", appStrList[i]);
     }
-    printf("mode: %c\n", inMode);
     if (inMode == 'F') {
         int output = FCFS(appStrList, numApp, inRejectedList, inRejectSize);
         return output;
     }
     else if (inMode == 'P') {
-        printf("mode2: %c\n", inMode);
         int out = PR(appStrList, numApp, inRejectedList, inRejectSize);
-        printf("mode3: %c\n", inMode);
         return out;
     }
     return 0;
@@ -663,7 +807,7 @@ void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList,
     for (i = 0; i < totalUserNum; i++) {
         fprintf(fp, "=========");
     }
-    fprintf(fp, "==================================================================================================\n");    
+    fprintf(fp, "====================================================================================================\n");    
     
     for (i = 0; i < inRejectSize; i++)
     {
@@ -765,7 +909,7 @@ void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList,
     for (i = 0; i < totalUserNum; i++) {
         fprintf(fp, "=========");
     }
-    fprintf(fp, "===================================================================================================\n");
+    fprintf(fp, "====================================================================================================\n");
     fclose(fp);
 }
 
@@ -940,12 +1084,8 @@ void outputPerformance(int inTotalSize, int* inAcceptSize, int inRejectSize, cha
     int totalAccept = inTotalSize-inRejectSize;
     FILE *fp = NULL;
     fp = fopen(filename, "a");
-    
-    fprintf(fp, "\nPerformance:\n\n");
-    for (i = 0; i < totalUserNum; i++) {
-        fprintf(fp, "=========");
-    }
-    fprintf(fp, "====================================================================================================\n");
+
+    fprintf(fp, "Performance:\n");
     fprintf(fp, "Total:\n\t\tNumber of Requests Received: %.0f\n\t\tNumber of Requests Accepted: %d (%.1f%%)\n\t\tNumber of Requests Rejected: %d (%.1f%%)\n", totalSize, totalAccept, totalAccept/totalSize*100, inRejectSize, inRejectSize/totalSize*100);
     fprintf(fp, "\n\nNumber of Requests Accepted by Individual:\n");
     for (i = 0; i < totalUserNum; i++) {
@@ -1097,6 +1237,9 @@ int main(int argc, char *argv[]) {
                         int num1 = buf1[2]-'0';
                         int num2 = buf1[3]-'0';
                         userNum = num1*10+num2;
+                        outRejectedListSize = 0;
+                        int d;
+                        for (d=0;d<1500;d++) outRejectedList[d] = -1;
                         write(fd[2*(i-1)+1][1], "S", strlen("S")); // write "A" back to ACK parent
                     }
                     if (n>0 && userNum > 0 && buf1[0]=='A') {
@@ -1294,18 +1437,17 @@ int main(int argc, char *argv[]) {
                     char* cmdCopy2 = (char*) malloc(sizeof(char)*n);
                     strcpy(cmdCopy2,cmdList[i]);
                     char* cmdToken2 = cmdList[i] + 10;
-                    char scheduleType = 'A';
-                    int outputCount = 1;
-                    if (strcmp(cmdToken2, "FCFS") == 0) {scheduleType = 'F';}
-                    else if (strcmp(cmdToken2, "PRIORITY") == 0) {scheduleType = 'P';}
+                    char scheduleType = 'A'; // default is all
+                    int outputCount = 2; // default is all
+                    if (strcmp(cmdToken2, "FCFS") == 0) {scheduleType = 'F'; outputCount = 1;}
+                    else if (strcmp(cmdToken2, "PRIORITY") == 0) {scheduleType = 'P'; outputCount = 1;}
                     else if (strcmp(cmdToken2, "ALL") == 0) {scheduleType = 'A'; outputCount = 2;}
-
-                    // 
+                
                     while(outputCount > 0) {
                         if (scheduleType == 'A') {scheduleType = 'F';}
                     
                         outputCallCount++;
-                        char* scheduleCmd = (char*) malloc(sizeof(char)*4+1);
+                        char* scheduleCmd = (char*) malloc(sizeof(char)*(4+1));
                         scheduleCmd[0] = 'S';
                         scheduleCmd[1] = scheduleType;
                         if (userSize<=9) {
@@ -1473,6 +1615,9 @@ int main(int argc, char *argv[]) {
                 }
             }
         } 
+        else{
+            printf("-> [File not found]\n");
+        }
     }
     exit(0);
 }
