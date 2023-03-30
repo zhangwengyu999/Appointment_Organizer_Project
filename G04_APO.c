@@ -803,7 +803,7 @@ void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList,
     char *appointment = (char *)malloc(sizeof(char) * 100);
     FILE *fp = NULL;
     fp = fopen(filename, "a");
-    fprintf(fp, "\nAltogether there are %d appointments rejected\n\t  Date\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", inRejectSize);
+    fprintf(fp, "\nAltogether there are %d appointments rejected\nIndex\tDate\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", inRejectSize);
     for (i = 0; i < totalUserNum; i++) {
         fprintf(fp, "=========");
     }
@@ -1085,8 +1085,8 @@ void outputPerformance(int inTotalSize, int* inAcceptSize, int inRejectSize, cha
     FILE *fp = NULL;
     fp = fopen(filename, "a");
 
-    fprintf(fp, "Performance:\n");
-    fprintf(fp, "Total:\n\t\tNumber of Requests Received: %.0f\n\t\tNumber of Requests Accepted: %d (%.1f%%)\n\t\tNumber of Requests Rejected: %d (%.1f%%)\n", totalSize, totalAccept, totalAccept/totalSize*100, inRejectSize, inRejectSize/totalSize*100);
+    fprintf(fp, "\nPerformance:\n");
+    fprintf(fp, "\nTotal:\n\t\tNumber of Requests Received: %.0f\n\t\tNumber of Requests Accepted: %d (%.1f%%)\n\t\tNumber of Requests Rejected: %d (%.1f%%)\n", totalSize, totalAccept, totalAccept/totalSize*100, inRejectSize, inRejectSize/totalSize*100);
     fprintf(fp, "\n\nNumber of Requests Accepted by Individual:\n");
     for (i = 0; i < totalUserNum; i++) {
         fprintf(fp, "\t\t%s\t\t\t\t%d\n", inTotalUserList[i], inAcceptSize[i]);
@@ -1515,7 +1515,7 @@ int main(int argc, char *argv[]) {
                         strcat(outputInitCmd, "O");
                         strcat(outputInitCmd, int2Str(startTime-20230400,10)); // start time
                         strcat(outputInitCmd, int2Str(endTime-20230400,10)); // end time
-                        char temp[2]; 
+                        char temp[2];
                         temp[0] = scheduleType; 
                         temp[1] = '\0';
                         strcat(outputInitCmd, temp); // schedule mode
