@@ -5,17 +5,16 @@ Paul, you have 3 appointments
   Date		Start	End			Type				People
 ===============================================================================================================================
 20230501    1800    1900    groupStudy     		Paul  Mary  Lucy  
-20230501    1900    2000    privateTime    		Paul  Mary  
+20230501    1900    2000    privateTime    		Paul  
 20230501    2000    2100    gathering      		Paul  Mary  
 
 					- End of Paul List -
 ===============================================================================================================================
 
-Mary, you have 3 appointments
+Mary, you have 2 appointments
   Date		Start	End			Type				People
 ===============================================================================================================================
 20230501    1800    1900    groupStudy     		Paul  Mary  Lucy  
-20230501    1900    2000    privateTime    		Paul  Mary  
 20230501    2000    2100    gathering      		Paul  Mary  
 
 					- End of Mary List -
@@ -48,11 +47,11 @@ Total:
 
 Number of Requests Accepted by Individual:
 		Paul				3
-		Mary				3
+		Mary				2
 		Lucy				1
 
 
 Utilization of Time Slot:
 		Paul				1.9%
-		Mary				1.9%
+		Mary				1.3%
 		Lucy				0.6%
