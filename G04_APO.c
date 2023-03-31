@@ -683,7 +683,7 @@ float outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUser
     FILE *fp = NULL;
     fp = fopen(filename, "a");
     strcpy(caller, inTotalUserList[inUserIndex]);
-    fprintf(fp, "\n%s, you have %d appointments\n  Date\t\tStart\tEnd\t\t\tType\t\t\t\tPeople\n", caller, inAppStrSize);
+    fprintf(fp, "\n%s, you have %d appointments\nDate\tStart\tEnd\t\tType\t\t\tPeople\n", caller, inAppStrSize);
     for (i = 0; i < totalUserNum; i++) {
         fprintf(fp, "=========");
     }
