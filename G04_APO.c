@@ -251,7 +251,7 @@ void recordApp(char* inApp) {
     }
     // Error handling
     if (callerFound == 0) {
-        printf("-> [Caller not found]\n");
+        printf("-> [Caller not found: %s]\n",inAppCopy);
         return;
     }
     // give each callees with a ID from input order
@@ -267,15 +267,15 @@ void recordApp(char* inApp) {
     }
     // Error handling
     if (appName == 1 && (calleeCount>0)) {
-        printf("-> [No callee can be in privateTime]\n");
+        printf("-> [No callee can be in privateTime: %s]\n",inAppCopy);
         return;
     }
     else if (appName != 1 && (calleeCount == 0)) {
-        printf("-> [At least one callee should be in this appointment]\n");
+        printf("-> [At least one callee should be in this appointment: %s]\n",inAppCopy);
         return;
     }
     if (calleeCount != inAppLength-4-1) {
-        printf("-> [Callee not found]\n");
+        printf("-> [Callee not found: %s]\n",inAppCopy);
         return;
     }
     Appointment* outAppointment = newAppointment(appName, user, inAppLength-4, appCount, date, time, duration);
