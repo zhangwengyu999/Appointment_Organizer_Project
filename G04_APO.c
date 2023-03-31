@@ -225,6 +225,7 @@ void recordApp(char* inApp) {
     int t = getDateTimeTransfer(date,time,duration)[1];
     int d = getDateTimeTransfer(date,time,duration)[2]-100;
     
+    // Error handling
     if (date < startTime || date > endTime ) {
         printf("-> [Event date out of range: %s]\n",inAppCopy);
         return;
@@ -248,6 +249,7 @@ void recordApp(char* inApp) {
             break;
         }
     }
+    // Error handling
     if (callerFound == 0) {
         printf("-> [Caller not found]\n");
         return;
@@ -263,12 +265,15 @@ void recordApp(char* inApp) {
             }
         }
     }
-
+    // Error handling
     if (appName == 1 && (calleeCount>0)) {
         printf("-> [No callee can be in privateTime]\n");
         return;
     }
-
+    else if (appName != 1 && (calleeCount == 0)) {
+        printf("-> [At least one callee should be in this appointment]\n");
+        return;
+    }
     if (calleeCount != inAppLength-4-1) {
         printf("-> [Callee not found]\n");
         return;

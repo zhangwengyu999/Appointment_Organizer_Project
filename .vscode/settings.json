@@ -15,7 +15,8 @@
         "*.tcc": "c",
         "mutex": "c",
         "cmath": "c",
-        "tuple": "c"
+        "tuple": "c",
+        "stdbool.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

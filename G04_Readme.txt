@@ -5,6 +5,7 @@
         - G04_tests.dat
         - G04_Readme.txt
 
+
 *** To compile the program ***:
 gcc G04_APO.c -o G04_APO
     - There are no additional libraries in the program, use the standard compilation statements.
@@ -12,11 +13,14 @@ gcc G04_APO.c -o G04_APO
 
 *** To run the program ***:
 ./G04_APO [startDate] [endDate] [user1] [user2] ... [user10]
-- For example: ./G04_APO 20230501 20230531 paul mary lucy
+- For example (used in G04_tests.dat): ./G04_APO 20230501 20230531 paul mary lucy david jerry mike wayne
 - The user needs to specify the start date, the end date and the names of all users involved in scheduling at the start of the program. 
 - The start and end dates need to be between "20230501" and "20230531", and the end date needs to be greater than the start date. 
 - The number of users needs to be greater than three and less than ten. 
 - These parameters which are established in the program start statement, cannot be changed during the program.
+- Error message in run the program:	
+    - User Size out of Range [3,10], try again!
+    - Time out of Range [20230501, 20230531], try again!
 
 
 *** To record single appointment ***:
@@ -42,7 +46,23 @@ printSchd [Algorithm]
 - For example: printSchd PRIORITY
 - Use the schedule command to invoke the corresponding Algorithm for scheduling, 
 - which includes FCFS, PRIORITY and ALL. 
-- The command also calls the Output Module to write the results of the Algorithm to a file.
+- The command also calls the Output Module to write the results of the Algorithm to a single file.
+- The saved single file name will be shown in the command line.
+- The single file contains 
+    - Appointment scheduling result for each user, 
+    - Rejected appointment list, and 
+    - Performance results.
+
+
+*** Error message in appointment record command ***:
+- Event date out of range: entered appointment data is out of set data range
+- Event time out of range: entered appointment time is out of set time range
+- Event duration out of range: entered appointment duration is out of set time range 
+- Caller not found: entered appointment’s caller is not found among all users
+- No callee can be in privateTime: callees are found in entered privateTime appointment
+- At least one callee should be in this appointment: no callee in non-privateTime appointment
+- Callee not found: entered appointment’s callees are not found among all users
+
 
 *** To end the program ***:
 endProgram
