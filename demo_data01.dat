@@ -1,0 +1,10 @@
+gathering billy 20230520 1800 5.0 amada cathy danny emily
+projectMeeting cathy 20230512 1800 4.0 billy danny
+groupStudy cathy 20230523 2000 2.0 amada billy danny emily
+groupStudy emily 20230524 2000 3.0 amada billy
+projectMeeting cathy 20230508 2100 2.0 amada billy
+privateTime billy 20230513 1900 3.0 
+privateTime billy 20230503 2200 1.0 
+gathering danny 20230527 1900 3.0 billy emily
+groupStudy emily 20230530 1900 3.0 amada billy cathy danny
+projectMeeting billy 20230505 2000 1.0 amada danny emily

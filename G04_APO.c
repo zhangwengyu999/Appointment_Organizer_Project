@@ -50,12 +50,12 @@ User* newUser(char* inName) {
     User* self=(User*) malloc(sizeof(User));
     self->appCount=0;
     self->userName=inName;
-    self->appLists=(int*) malloc(sizeof(int)*150);
+    self->appLists=(int*) malloc(sizeof(int)*300);
     return self;
 }
 
 void addAppointment(User* inUser, int inApp) {
-    if (inUser->appCount<150) {
+    if (inUser->appCount<300) {
         inUser->appLists[inUser->appCount]=inApp;
         inUser->appCount++;
     }
@@ -107,6 +107,7 @@ int getPriority(char* inAppName){
 
 // convert int to string
 char* int2Str(int val, int base){ 
+    if (val == 0) {return "0";}
 	static char buf[32] = {0};
 	int i = 30;
 	for(; val && i ; --i, val /= base) {
@@ -131,6 +132,10 @@ int* getDateTimeTransfer(int inDate, int inTime,float inDuration){
 char* appToString(Appointment* inApp) {
     // ID(5)Date(3)Start(4)Duration(3)PR(1)Status(1) = 17
     char* str = (char*) malloc(sizeof(char)*17);
+    int ss;
+    for (ss=0;ss<17;ss++){
+        str[ss]='\0';
+    }
     strcat(str,int2Str((10000+inApp->appID),10)); // ID(5): 10000+id
     int* timestamp = getDateTimeTransfer(inApp->date, inApp->time, inApp->duration);
     strcat(str,int2Str(timestamp[0],10)); // Date(3)
@@ -141,11 +146,14 @@ char* appToString(Appointment* inApp) {
     return str;
 }
 
-// convert appointment to string with additional 10 index of user
 char* appToString2(Appointment* inApp) {
     // append users in app
     // ID(5)Date(3)Start(4)Duration(3)PR(1)Status(1) = 17
-    char* str = (char*) malloc(sizeof(char)*27);
+    char* str = (char*) malloc(sizeof(char)*21);
+    int sss;
+    for (sss=0;sss<21;sss++){
+        str[sss]='\0';
+    }
     strcat(str,int2Str((10000+inApp->appID),10)); // ID(5): 10000+id
     int* timestamp = getDateTimeTransfer(inApp->date, inApp->time, inApp->duration);
     strcat(str,int2Str(timestamp[0],10)); // Date(3)
@@ -155,6 +163,7 @@ char* appToString2(Appointment* inApp) {
     strcat(str,"0"); // Status(1) initial status is 0 (not rejected)
     int i = 0;
     int j = 0;
+    int out = 0;
     char* str2 = (char*) malloc(sizeof(char)*10);
     for (i = 0; i<10; i++) str2[i] = '0';
     for (i = 0; i < inApp->userCount; i++) {
@@ -164,7 +173,38 @@ char* appToString2(Appointment* inApp) {
             }
         }
     }
-    strcat(str,str2);
+
+    int weight = 1;
+    for (i = 9; i>=0; i--) {
+        if (str2[i] == '1') {
+            out += weight;
+        }
+        weight *= 2;
+    }
+    if (out>999) {
+        strcat(str,int2Str(out/1000,10));
+        strcat(str,int2Str((out%1000)/100,10));
+        strcat(str,int2Str((out%100)/10,10));
+        strcat(str,int2Str(out%10,10));
+    }
+    else if (out>99) {
+        strcat(str,"0");
+        strcat(str,int2Str((out)/100,10));
+        strcat(str,int2Str((out%100)/10,10));
+        strcat(str,int2Str(out%10,10));
+    }
+    else if (out>9) {
+        strcat(str,"0");
+        strcat(str,"0");
+        strcat(str,int2Str((out)/10,10));
+        strcat(str,int2Str(out%10,10));
+    }
+    else if (out>=0) {
+        strcat(str,"0");
+        strcat(str,"0");
+        strcat(str,"0");
+        strcat(str,int2Str(out,10));
+    }
     return str;
 }
 
@@ -230,6 +270,10 @@ void recordApp(char* inApp) {
         printf("-> [Event date out of range: %s]\n",inAppCopy);
         return;
     }
+    if (date == 20230501 || date == 20230526 || date == 20230507 || date == 20230514 || date == 20230521 || date == 20230528) {
+        printf("-> [No event is allowed in public holiday or sunday: %s]\n",inAppCopy);
+        return;
+    }
     if (time < 1800 || time >= 2300 ) {
         printf("-> [Event time out of range: %s]\n",inAppCopy);
         return;
@@ -293,7 +337,7 @@ void recordApp(char* inApp) {
 char** getCommandList(char* command){
     FILE* fp2;
     char* str = (char*) malloc(sizeof(char)*255);
-    char** strList = (char**) malloc(sizeof(char*)*1500);
+    char** strList = (char**) malloc(sizeof(char*)*3000);
     int num = 0;
     int n = strlen(command);
 
@@ -536,7 +580,7 @@ int scheduleModule(char* inStr, char inMode, int* inRejectedList, int inRejectSi
 // ---------- Output Module Function ----------
 
 void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList, int totalUserNum, char *filename) {
-    int appLength = 27;
+    // int appLength = 27;
     int i = 0;
     int j = 0;
     char *id = (char *)malloc(sizeof(char) * 5);
@@ -546,6 +590,8 @@ void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList,
     char *dateForOut = (char *)malloc(sizeof(char) * 10);
     char *startTimeForOut = (char *)malloc(sizeof(char) * 10);
     char priority;
+    char *activeUsers1 = (char *)malloc(sizeof(char) * 4);
+    char *activeUsers2 = (char *)malloc(sizeof(char) * 11);
     char *activeUsers = (char *)malloc(sizeof(char) * 10);
     char *activeUsersStr = (char *)malloc(sizeof(char) * 100);
     char *caller = (char *)malloc(sizeof(char) * 20);
@@ -591,10 +637,14 @@ void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList,
         priority = inAppStrList[i][15];
 
         // get activeUsers (17:24)
-        for (j = 0; j < 10; j++)
+        for (j = 0; j < 4; j++)
         {
-            activeUsers[j] = inAppStrList[i][j + 17];
+            activeUsers1[j] = inAppStrList[i][j + 17];
         }
+        int user1 = atoi(activeUsers1);
+        user1 += 1024;
+        activeUsers2 = int2Str(user1, 2);
+        strcpy(activeUsers,activeUsers2+1);
 
         for (j = 0; j < 100; j++)
         {
@@ -666,7 +716,7 @@ void outputReject(char **inAppStrList, int inRejectSize, char **inTotalUserList,
 
 float outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUserList, int totalUserNum, int inUserIndex, char *filename, int schedulePeriod) {
     // inAppStrList[index]: 27 = 5(id: 0-4)+3(date: 5-7)+4(startT: 8-11)+3(duration: 12-14)+1(priority: 15)+1(status: 16)+10(17-26)
-    int appLength = 27;
+    // int appLength = 27;
     int i = 0;
     int j = 0;
     char *id = (char *)malloc(sizeof(char) * 5);
@@ -676,6 +726,8 @@ float outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUser
     char *dateForOut = (char *)malloc(sizeof(char) * 8);
     char *startTimeForOut = (char *)malloc(sizeof(char) * 4);
     char priority;
+    char *activeUsers1 = (char *)malloc(sizeof(char) * 4);
+    char *activeUsers2 = (char *)malloc(sizeof(char) * 11);
     char *activeUsers = (char *)malloc(sizeof(char) * 10);
     char *activeUsersStr = (char *)malloc(sizeof(char) * 20);
     char *caller = (char *)malloc(sizeof(char) * 20);
@@ -724,10 +776,15 @@ float outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUser
         priority = inAppStrList[i][15];
 
         // get activeUsers (17:24)
-        for (j = 0; j < 10; j++)
+        for (j = 0; j < 4; j++)
         {
-            activeUsers[j] = inAppStrList[i][j + 17];
+            activeUsers1[j] = inAppStrList[i][j + 17];
         }
+        int user1 = atoi(activeUsers1);
+        user1 += 1024;
+        activeUsers2 = int2Str(user1, 2);
+        strcpy(activeUsers,activeUsers2+1);
+
 
         for (j = 0; j < 100; j++)
         {
@@ -777,12 +834,12 @@ float outputSingleUser(char **inAppStrList, int inAppStrSize, char **inTotalUser
         }
         fprintf(fp, "%s", appointment);
         fprintf(fp, "\t\t");
+
         for (j = 0; j < 10; j++)
         {
             if (activeUsers[j] == '1')
             {
                 strcpy(activeUsersStr, inTotalUserList[j]);
-                
                 fprintf(fp, "%s", activeUsersStr);
                 fprintf(fp, "  ");
             }
@@ -867,6 +924,10 @@ void outputModule(char*** inTotalAppStrList, int* inUserAppCountList, char* inTo
     }
     char schdMode = inMode[0];
     char* filename = (char *)malloc(sizeof(char) * 20);
+    int f;
+    for (f=0;f<20;f++) {
+        filename[f] = '\0';
+    }
     strcat(filename, "G04_");
     if (fileNum<10) {
         strcat(filename, "0");
@@ -922,7 +983,7 @@ int main(int argc, char *argv[]) {
     }
 
     // initialize appointment list
-    totalAppointmentList=(Appointment**) malloc(sizeof(Appointment*)*1500);
+    totalAppointmentList=(Appointment**) malloc(sizeof(Appointment*)*3000);
     // initialize user list
     totalUserList=(User**) malloc(sizeof(User*)*userSize);
     
@@ -960,7 +1021,7 @@ int main(int argc, char *argv[]) {
                 // close unused ends
                 close(fd[2*(i-1)+1][0]); // close child in for child -> parent pipe
                 close(fd[2*(i-1)][1]); // close child out for parent -> child pipe
-                char buf1[2554];
+                char buf1[5104];
                 char buf2[10];
                 buf1[0] = '\0';
                 buf2[0] = '\0';
@@ -974,13 +1035,13 @@ int main(int argc, char *argv[]) {
                 }
 
                 int c;
-                for(c = 0; c<2551 ; c++) buf1[c] = '\0';
+                for(c = 0; c<5104 ; c++) buf1[c] = '\0';
                 
-                int* outRejectedList = (int*) malloc(sizeof(int)*1500);
+                int* outRejectedList = (int*) malloc(sizeof(int)*3000);
                 int outRejectedListSize = 0;
                 
                 while(1) {
-                    int n = read(fd[2*(i-1)][0],buf1,2551);
+                    int n = read(fd[2*(i-1)][0],buf1,5104);
                     if (n>0 && buf1[0]=='S') {
                         // scheduling initialization
                         scheduleMode = buf1[1];
@@ -989,7 +1050,7 @@ int main(int argc, char *argv[]) {
                         userNum = num1*10+num2;
                         outRejectedListSize = 0;
                         int d;
-                        for (d=0;d<1500;d++) outRejectedList[d] = -1;
+                        for (d=0;d<3000;d++) outRejectedList[d] = -1;
                         write(fd[2*(i-1)+1][1], "S", strlen("S")); // write "S" back to ACK parent
                     }
                     if (n>0 && userNum > 0 && buf1[0]=='A') {
@@ -1001,6 +1062,8 @@ int main(int argc, char *argv[]) {
                             outRejectedListSize = scheduleModule(recvAppStr, scheduleMode, outRejectedList, outRejectedListSize);
                         }
                         char* outRejectedStr = (char*) malloc(sizeof(char)*5*outRejectedListSize+1+4);
+                        int g;
+                        for (g=0;g<(5*outRejectedListSize+1+4);g++) {outRejectedStr[g] = '\0';}
                         char* rejectedNumStr = (char*) malloc(sizeof(char)*4);
                         rejectedNumStr[0] = outRejectedListSize/1000 + '0';
                         rejectedNumStr[1] = (outRejectedListSize%1000)/100 + '0';
@@ -1014,13 +1077,14 @@ int main(int argc, char *argv[]) {
                         }
                         // write rejected data back to parent
                         write(fd[2*(i-1)+1][1], outRejectedStr, strlen(outRejectedStr));
+                        for (g=0;g<(5*outRejectedListSize+1+4);g++) {outRejectedStr[g] = '\0';}
                     }
 
                     // Waiting for cmd "E" from parent to exit
                     if (n>0 && buf1[0]=='E') {
                         break;
                     }
-                    for(c = 0; c<2554 ; c++) buf1[c] = '\0';
+                    for(c = 0; c<5104 ; c++) buf1[c] = '\0';
 
                 }
                 
@@ -1035,7 +1099,7 @@ int main(int argc, char *argv[]) {
                 close(fd[2*(i-1)+1][0]); // close child in for child -> parent pipe
                 close(fd[2*(i-1)][1]); // close child out for parent -> child pipe
                 char buf3[10];
-                char buf4[4050];
+                char buf4[6301];
                 char* startTimeStr = (char*) malloc(sizeof(char)*3);
                 char* endTimeStr = (char*) malloc(sizeof(char)*3);
                 char* schdMode = (char*) malloc(sizeof(char)*1);
@@ -1054,7 +1118,7 @@ int main(int argc, char *argv[]) {
                 int* allUserAppCountList = {0};
                 int d;
                 for(d = 0; d<10 ; d++) buf3[d] = '\0';
-                for(d = 0; d<4050 ; d++) buf4[d] = '\0';
+                for(d = 0; d<6301 ; d++) buf4[d] = '\0';
                 // Waiting for cmd "H" to receive hello from parent
                 int m = read(fd[2*(i-1)][0],buf3,10);
                 if (m>0 && buf3[0]=='H') {
@@ -1062,7 +1126,7 @@ int main(int argc, char *argv[]) {
                 }
                 
                 while(1) {
-                    int n = read(fd[2*(i-1)][0],buf4,4050);
+                    int n = read(fd[2*(i-1)][0],buf4,6301);
                     if (n>0 && buf4[0]=='O') {
                         // get initial Output info msg
                         strncpy(startTimeStr, buf4+1, 3);
@@ -1084,29 +1148,35 @@ int main(int argc, char *argv[]) {
                     }
                     if (n>0 && buf4[0]=='A') {
                         // user App str msg
-                        int appNum = (strlen(buf4)-1)/27;
+                        int appNum = (strlen(buf4)-1)/21;
                         char** singleUserAppList = (char**) malloc(sizeof(char*)*appNum);
                         int q;
                         for (q=0;q<appNum;q++) {
-                            singleUserAppList[q] = (char*) malloc(sizeof(char)*27);
-                            strncpy(singleUserAppList[q], (buf4+1)+27*q, 27);
+                            singleUserAppList[q] = (char*) malloc(sizeof(char)*21);
+                            strncpy(singleUserAppList[q], (buf4+1)+21*q, 21);
                         }
-                        allUserAppStrList[recvUserCount] = (char**) malloc(sizeof(char*)*appNum);
+                        allUserAppStrList[recvUserCount] = (char**) malloc(sizeof(char*)*appNum); 
+
                         // get accepted App str msg
                         allUserAppStrList[recvUserCount] = singleUserAppList;
-                        allUserAppCountList[recvUserCount] = appNum;
+
+                        allUserAppCountList[recvUserCount] = appNum; 
+
                         recvUserCount++;
                         if (recvUserCount == userNum) {
+
                             recvUserCount = 0;
                         }
+
                         write(fd[2*(i-1)+1][1], "A", strlen("A"));
+
                     }
                     if (n>0 && buf4[0]=='R') {
                         // user rejected App str msg
                         int r;
                         for (r=0;r<rejectedCount;r++) {
-                            allUserRejectedAppStrList[r] = (char*) malloc(sizeof(char)*27);
-                            strncpy(allUserRejectedAppStrList[r], (buf4+1)+27*r, 27);
+                            allUserRejectedAppStrList[r] = (char*) malloc(sizeof(char)*21);
+                            strncpy(allUserRejectedAppStrList[r], (buf4+1)+21*r, 21);
                         }
                         // pass all data to output module
                         outputModule(allUserAppStrList, allUserAppCountList, userNamesStr, 
@@ -1120,8 +1190,8 @@ int main(int argc, char *argv[]) {
                     if (n>0 && buf4[0]=='E') {
                         break;
                     }
-                    for(d = 0; d<4050 ; d++) buf4[d] = '\0';
-
+                    int e;
+                    for(e = 0; e<6301 ; e++) buf4[e] = '\0';
                 }
                 // close used ends
                 close(fd[2*(i-1)+1][1]); // close child out for child -> parent
@@ -1225,7 +1295,7 @@ int main(int argc, char *argv[]) {
                         }
 
                         int j;
-                        char buf6[755]; // 5*150+1+4
+                        char buf6[1505]; // 5*150+1+4
                         for (j=0; j<userSize; j++) {
                             User* currUser = totalUserList[j];
                             int userAppSize = currUser->appCount;
@@ -1243,10 +1313,10 @@ int main(int argc, char *argv[]) {
                             }
 
                             write(fd[0][1], userAppStr, strlen(userAppStr)); // write to schedule module
-
+                            for(d = 0; d<(userAppSize*17+1); d++) userAppStr[d] = '\0';
                             // wait for schedule module to send ack
                             while(1) {
-                                int m = read(fd[1][0],buf6,755);
+                                int m = read(fd[1][0],buf6,1505);
                                 if (m>0 && buf6[0]=='A') { // get ack from schedule module
                                     break;
                                 }
@@ -1267,6 +1337,8 @@ int main(int argc, char *argv[]) {
                         }
                         
                         char* outputInitCmd = (char*) malloc(sizeof(char)*(10+userSize*20+8+4));
+                        int h;
+                        for (h=0;h<(10+userSize*20+8+4);h++) {outputInitCmd[h] = '\0';}
 
                         strcat(outputInitCmd, "O");
                         strcat(outputInitCmd, int2Str(startTime-20230400,10)); // start time
@@ -1290,6 +1362,7 @@ int main(int argc, char *argv[]) {
                             strcat(outputInitCmd, userNameStr);
                         }
                         write(fd[2][1], outputInitCmd, strlen(outputInitCmd)); // write to output module
+                        for (h=0;h<(10+userSize*20+8+4);h++) {outputInitCmd[h] = '\0';}
                         char buf7[10];
                         while(1) {
                             int m = read(fd[3][0],buf7,10);
@@ -1303,10 +1376,13 @@ int main(int argc, char *argv[]) {
                         for (a=0;a<userSize;a++) {
                             User* currUser = totalUserList[a];
                             int userAppSize = currUser->appCount;
-                            char* userAppListStr = (char*) malloc(sizeof(char)*(userAppSize*27+1));
-                            strcat(userAppListStr, "A"); // A for App
+                            char* userAppListStr = (char*) malloc(sizeof(char)*(userAppSize*21+1));
                             int k;
+                            for (k = 0;k<(userAppSize*21+1);k++) {userAppListStr[k]='\0';}
+                            strcat(userAppListStr, "A"); // A for App
+
                             for (k=0;k<userAppSize;k++) {
+
                                 int currAppId = currUser->appLists[k];
                                 int isReject = 0;
                                 int l;
@@ -1316,12 +1392,15 @@ int main(int argc, char *argv[]) {
                                         break;
                                     }
                                 }
-                                if (isReject == 1) continue;
+                                if (isReject == 1) {
+                                    continue;
+                                }
                                 Appointment* currApp = totalAppointmentList[currAppId];
                                 strcat(userAppListStr, appToString2(currApp)); // get 27 char app string
+
                             }
                             write(fd[2][1], userAppListStr, strlen(userAppListStr)); // write to output module
-                            
+                            for (k = 0;k<(userAppSize*21+1);k++) {userAppListStr[k]='\0';}
                             char buf8[10];
                             while(1) {
                                 int m = read(fd[3][0],buf8,10);
@@ -1332,13 +1411,16 @@ int main(int argc, char *argv[]) {
                         }
 
                         // send rejected apps to output module
-                        char* rejectedAppStr = (char*) malloc(sizeof(char)*(rejectCount*27+1));
+                        char* rejectedAppStr = (char*) malloc(sizeof(char)*(rejectCount*21+1));
+                        int s;
+                        for (s = 0;s<(rejectCount*21+1);s++) {rejectedAppStr[s]='\0';}
                         strcat(rejectedAppStr, "R"); // A for App
                         for (r=0;r<rejectCount;r++) {
                             int rejectedAppIdx = rejectList[r];
                             strcat(rejectedAppStr, appToString2(totalAppointmentList[rejectedAppIdx])); // get 27 char app string
                         }
                         write(fd[2][1], rejectedAppStr, strlen(rejectedAppStr)); // write to output module
+                        for (s = 0;s<(rejectCount*21+1);s++) {rejectedAppStr[s]='\0';}
                         char buf9[10];
                         while(1) {
                             int s = read(fd[3][0],buf9,10);
