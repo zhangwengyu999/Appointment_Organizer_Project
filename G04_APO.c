@@ -1,8 +1,3 @@
-//// COMP2432 Operating Systems - Group Project
-
-//// Appointment Organizer
-//// Group 04 - CHEN Derun, LIU Minghao, YE Haowen, and ZHANG Wengyu
-//// Second Stage
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
